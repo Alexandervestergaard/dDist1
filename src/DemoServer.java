@@ -1,6 +1,5 @@
 import java.net.*;
 import java.io.*;
-//en ændring
 
 /**
  *

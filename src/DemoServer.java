@@ -1,6 +1,6 @@
 import java.net.*;
 import java.io.*;
-//alle ændringer
+//alle ændring
 /**
  *
  * A very simple server which will way for a connection from a client and print 

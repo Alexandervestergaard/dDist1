@@ -17,6 +17,7 @@ public class DistributedTextEditor extends JFrame {
     private JTextArea area2 = new JTextArea(20,120);
     private JTextField ipaddress = new JTextField("IP address here");
     private JTextField portNumber = new JTextField("Port number here");
+    private int portNumberInteger = 40604;
 
     private EventReplayer er;
     private Thread ert;
@@ -120,7 +121,7 @@ public class DistributedTextEditor extends JFrame {
                         final Socket socket = waitForConnectionFromClient();
 
                         if (socket != null) {
-                            System.out.println("Connection from " + socket);
+                            setTitle("Connection from " + socket);
                             new Thread(new Runnable() {
                                 public void run() {
                                     try {
@@ -175,7 +176,7 @@ public class DistributedTextEditor extends JFrame {
         try {
             InetAddress localhost = InetAddress.getLocalHost();
             String localhostAddress = localhost.getHostAddress();
-            System.out.println("Contact this server on the IP address " + localhostAddress);
+            setTitle("IP Adress = " + localhostAddress + " And Portnumber = " + portNumberInteger);
             return localhostAddress;
         } catch (UnknownHostException e) {
             System.err.println("Cannot resolve the Internet address of the local host.");
@@ -208,10 +209,10 @@ public class DistributedTextEditor extends JFrame {
 
     protected void registerOnPort() {
         try {
-            serverSocket = new ServerSocket(Integer.parseInt(portNumber.getText()));
+            serverSocket = new ServerSocket(portNumberInteger);
         } catch (IOException e) {
             serverSocket = null;
-            System.err.println("Cannot open server socket on port number" + Integer.parseInt(portNumber.getText()));
+            System.err.println("Cannot open server socket on port number" + portNumberInteger);
             System.err.println(e);
             System.exit(-1);
         }
@@ -221,19 +222,18 @@ public class DistributedTextEditor extends JFrame {
         public void actionPerformed(ActionEvent e) {
             saveOld();
             area1.setText("");
-            setTitle("Connecting to " + ipaddress.getText() + ":" + portNumber.getText() + "...");
+            //setTitle("Connecting to " + ipaddress.getText() + ":" + portNumberInteger + "...");
             changed = false;
             Save.setEnabled(false);
             SaveAs.setEnabled(false);
             System.out.println("Hello world!");
             System.out.println("Type CTRL-D to shut down the client.");
 
-            printLocalHostAddress();
             final String serverName = ipaddress.getText();
             final Socket socket = connectToServer(serverName);
 
             if (socket != null) {
-                System.out.println("Connected to " + socket);
+                setTitle("Connected to " + socket);
                 new Thread(new Runnable() {
                     public void run() {
                         try {
@@ -278,7 +278,9 @@ public class DistributedTextEditor extends JFrame {
                     // We ignore IOExceptions
                 }
             }
-
+            else {
+                setTitle("failed to connect");
+            }
 
         }
     };

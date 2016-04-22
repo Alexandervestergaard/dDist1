@@ -153,6 +153,10 @@ public class DistributedTextEditor extends JFrame {
     private void createIOStreams(Socket socket) {
         InputEventReplayer iep = new InputEventReplayer(dec, area2, socket);
         OutputEventReplayer oep = new OutputEventReplayer(dec, socket);
+        Thread iepThread = new Thread(iep);
+        Thread oepThread = new Thread(oep);
+        iepThread.start();
+        oepThread.start();
     }
 
     Action Disconnect = new AbstractAction("Disconnect") {

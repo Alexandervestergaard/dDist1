@@ -2,11 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="5ccec0da-0510-4f08-ae79-2d992115f70f" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/OutputEventReplayer.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/ReplayerInterface.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/DistributedTextEditor.java" afterPath="$PROJECT_DIR$/src/DistributedTextEditor.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/EventReplayer.java" afterPath="$PROJECT_DIR$/src/EventReplayer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/InputEventReplayer.java" afterPath="$PROJECT_DIR$/src/InputEventReplayer.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="dDistAfl1.iws" />
@@ -44,8 +40,8 @@
       <file leaf-file-name="DistributedTextEditor.java" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/DistributedTextEditor.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.6587591" vertical-offset="2070" max-vertical-offset="6953">
-              <caret line="153" column="76" selection-start-line="153" selection-start-column="76" selection-end-line="153" selection-end-column="76" />
+            <state vertical-scroll-proportion="0.7518248" vertical-offset="2104" max-vertical-offset="7021">
+              <caret line="158" column="26" selection-start-line="158" selection-start-column="26" selection-end-line="158" selection-end-column="26" />
               <folding />
             </state>
           </provider>
@@ -544,7 +540,11 @@
       <created>1461316110278</created>
       <updated>1461316110278</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="- Ready to test IO streams">
+      <created>1461317354474</created>
+      <updated>1461317354474</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -601,7 +601,8 @@
     <MESSAGE value="- Works for me" />
     <MESSAGE value="- Works for" />
     <MESSAGE value="InputEvenReplayer" />
-    <option name="LAST_COMMIT_MESSAGE" value="InputEvenReplayer" />
+    <MESSAGE value="- Ready to test IO streams" />
+    <option name="LAST_COMMIT_MESSAGE" value="- Ready to test IO streams" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -1040,8 +1041,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/DistributedTextEditor.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.6587591" vertical-offset="2070" max-vertical-offset="6953">
-          <caret line="153" column="76" selection-start-line="153" selection-start-column="76" selection-end-line="153" selection-end-column="76" />
+        <state vertical-scroll-proportion="0.7518248" vertical-offset="2104" max-vertical-offset="7021">
+          <caret line="158" column="26" selection-start-line="158" selection-start-column="26" selection-end-line="158" selection-end-column="26" />
           <folding />
         </state>
       </provider>

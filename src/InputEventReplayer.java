@@ -19,7 +19,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  * @author Jesper Buus Nielsen
  *
  */
-public class InputEventReplayer implements Runnable {
+public class InputEventReplayer implements Runnable, ReplayerInterface {
 
     private DocumentEventCapturer dec;
     private JTextArea area;

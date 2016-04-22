@@ -10,7 +10,7 @@ import java.awt.EventQueue;
  * @author Jesper Buus Nielsen
  *
  */
-public class EventReplayer implements Runnable {
+public class EventReplayer implements ReplayerInterface, Runnable {
 
     private DocumentEventCapturer dec;
     private JTextArea area;
@@ -20,6 +20,7 @@ public class EventReplayer implements Runnable {
         this.area = area;
     }
 
+    @Override
     public void run() {
         boolean wasInterrupted = false;
         while (!wasInterrupted) {
@@ -34,7 +35,7 @@ public class EventReplayer implements Runnable {
                                 area.insert(tie.getText(), tie.getOffset());
                             } catch (Exception e) {
                                 System.err.println(e);
-				    /* We catch all axceptions, as an uncaught exception would make the 
+				    /* We catch all axceptions, as an uncaught exception would make the
 				     * EDT unwind, which is now healthy.
 				     */
                             }
@@ -48,7 +49,7 @@ public class EventReplayer implements Runnable {
                                 area.replaceRange(null, tre.getOffset(), tre.getOffset()+tre.getLength());
                             } catch (Exception e) {
                                 System.err.println(e);
-				    /* We catch all axceptions, as an uncaught exception would make the 
+				    /* We catch all axceptions, as an uncaught exception would make the
 				     * EDT unwind, which is now healthy.
 				     */
                             }

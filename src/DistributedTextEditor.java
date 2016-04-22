@@ -116,7 +116,7 @@ public class DistributedTextEditor extends JFrame {
             setTitle("I'm listening on " + localhostAddress);
 
             try {
-                er.socket = server.serverSocket.accept();
+                createIOStreams(server.serverSocket.accept());
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
@@ -142,13 +142,18 @@ public class DistributedTextEditor extends JFrame {
                 Thread.currentThread().interrupt();
             }
 
-            er.socket = client.res;
+            createIOStreams(client.res);
 
             changed = true;
             Save.setEnabled(true);
             SaveAs.setEnabled(true);
         }
     };
+
+    private void createIOStreams(Socket socket) {
+        InputEventReplayer iep = new InputEventReplayer(dec, area2, socket);
+        OutputEventReplayer oep = new OutputEventReplayer(dec, socket);
+    }
 
     Action Disconnect = new AbstractAction("Disconnect") {
         public void actionPerformed(ActionEvent e) {

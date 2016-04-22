@@ -3,6 +3,7 @@
  */
 
 import javax.swing.*;
+import javax.swing.tree.ExpandVetoException;
 import java.awt.*;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -26,22 +27,29 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
     public Socket socket;
     private ObjectInputStream ois;
     LinkedBlockingQueue<MyTextEvent> eventHistory;
+    private Thread EventQueThread;
 
     public InputEventReplayer(DocumentEventCapturer dec, JTextArea area, Socket socket) {
         this.dec = dec;
         this.area = area;
         this.socket = socket;
         try {
+            System.out.println("About to create input stream");
             ois = new ObjectInputStream(socket.getInputStream());
+            System.out.println("Created objectinput stream");
         } catch (IOException e) {
             e.printStackTrace();
         }
         eventHistory = new LinkedBlockingQueue<MyTextEvent>();
         startEventQueThread();
+        System.out.println("Inputstream created and event queing thread started");
     }
 
     private void startEventQueThread() {
-        new Thread(new Runnable() {
+        if(EventQueThread.isAlive()) {
+            EventQueThread.interrupt();
+        }
+        EventQueThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 while (true) {
@@ -54,7 +62,8 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                     }
                 }
             }
-        }).start();
+        });
+        EventQueThread.start();
     }
 
     public void run() {

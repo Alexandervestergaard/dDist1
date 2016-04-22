@@ -24,7 +24,7 @@ public class EventReplayer implements ReplayerInterface, Runnable {
     public void run() {
         boolean wasInterrupted = false;
         while (!wasInterrupted) {
-            waitForOneSecond();
+            //waitForOneSecond();
             try {
                 MyTextEvent mte = dec.take();
                 if (mte instanceof TextInsertEvent) {

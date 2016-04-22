@@ -102,7 +102,7 @@ public class DistributedTextEditor extends JFrame {
             saveOld();
             area1.setText("");
             // TODO: Become a server listening for connections on some port.
-            Server server = new Server();
+            Server server = new Server(dec, area2);
             Thread serverThread = new Thread(server);
             serverThread.start();
             try {
@@ -115,11 +115,15 @@ public class DistributedTextEditor extends JFrame {
             System.out.println("localhost address: " + localhostAddress);
             setTitle("I'm listening on " + localhostAddress);
 
-            try {
-                createIOStreams(server.serverSocket.accept());
-            } catch (IOException e1) {
+
+            /*try {
+                System.out.println("Server socket: " + server.socket);
+                createIOStreams(server.socket);
+                Thread.sleep(1000);
+            } catch (InterruptedException e1) {
                 e1.printStackTrace();
-            }
+            }*/
+
 
             changed = true;
             Save.setEnabled(true);
@@ -133,7 +137,7 @@ public class DistributedTextEditor extends JFrame {
             area1.setText("");
             setTitle("Connecting to " + ipaddress.getText() + ":" + portNumber.getText() + "...");
 
-            Client client = new Client(ipaddress.getText(), portNumber.getText());
+            Client client = new Client(ipaddress.getText(), portNumber.getText(), dec, area2);
             Thread clientThread = new Thread(client);
             clientThread.start();
             try {
@@ -142,7 +146,7 @@ public class DistributedTextEditor extends JFrame {
                 Thread.currentThread().interrupt();
             }
 
-            createIOStreams(client.res);
+            //createIOStreams(client.res);
 
             changed = true;
             Save.setEnabled(true);
@@ -225,18 +229,28 @@ public class DistributedTextEditor extends JFrame {
 }
 
 class Server implements Runnable{
+    private DocumentEventCapturer dec;
+    private JTextArea area2;
+
+    Server(DocumentEventCapturer dec, JTextArea area2) {
+        this.dec = dec;
+        this.area2 = area2;
+    }
 
     /*
-     * Your group should use port number 40HGG, where H is your "hold nummer (1,2 or 3)
-     * and GG is gruppe nummer 00, 01, 02, ... So, if you are in group 3 on hold 1 you
-     * use the port number 40103. This will avoid the unfortunate situation that you
-     * connect to each others servers.
-     */
+         * Your group should use port number 40HGG, where H is your "hold nummer (1,2 or 3)
+         * and GG is gruppe nummer 00, 01, 02, ... So, if you are in group 3 on hold 1 you
+         * use the port number 40103. This will avoid the unfortunate situation that you
+         * connect to each others servers.
+         */
     protected int portNumber = 40604;
     protected ServerSocket serverSocket = null;
     protected Socket res = null;
+    protected Socket socket = null;
     protected String localhostAddress = "0";
     public BufferedReader fromClient;
+    private Thread iepThread = new Thread();
+    private Thread oepThread = new Thread();
 
     /**
      *
@@ -306,8 +320,9 @@ class Server implements Runnable{
         registerOnPort();
 
         while (true) {
-            Socket socket = waitForConnectionFromClient();
+            socket = waitForConnectionFromClient();
             System.out.println("Socket recieved");
+            createIOStreams(socket, dec, area2);
 
             if (socket != null) {
                 System.out.println("Connection from " + socket);
@@ -336,6 +351,21 @@ class Server implements Runnable{
         System.out.println("Goodbuy world!");
     }
 
+    private void createIOStreams(Socket socket, DocumentEventCapturer dec, JTextArea area2) {
+        if(iepThread.isAlive()) {
+            iepThread.interrupt();
+        }
+        if(oepThread.isAlive()) {
+            oepThread.interrupt();
+        }
+        InputEventReplayer iep = new InputEventReplayer(dec, area2, socket);
+        OutputEventReplayer oep = new OutputEventReplayer(dec, socket);
+        iepThread = new Thread(iep);
+        oepThread = new Thread(oep);
+        iepThread.start();
+        oepThread.start();
+    }
+
 
 }
 
@@ -350,10 +380,16 @@ class Client implements Runnable {
     private int portNumber = 40604;
     private String serverName;
     protected Socket res = null;
+    private Thread iepThread = new Thread();
+    private Thread oepThread = new Thread();
+    private DocumentEventCapturer dec;
+    private JTextArea area2;
 
-    public Client(String serverName, String portNumber) {
+    public Client(String serverName, String portNumber, DocumentEventCapturer dec, JTextArea area2) {
         this.serverName = serverName;
         this.portNumber = Integer.parseInt(portNumber);
+        this.dec = dec;
+        this.area2 = area2;
     }
 
     /**
@@ -393,6 +429,7 @@ class Client implements Runnable {
         printLocalHostAddress();
 
         Socket socket = connectToServer(serverName);
+        createIOStreams(socket, dec, area2);
 
         if (socket != null) {
             System.out.println("Connected to " + socket);
@@ -418,5 +455,19 @@ class Client implements Runnable {
         System.out.println("Goodbuy world!");
     }
 
+    private void createIOStreams(Socket socket, DocumentEventCapturer dec, JTextArea area2) {
+        if(iepThread.isAlive()) {
+            iepThread.interrupt();
+        }
+        if(oepThread.isAlive()) {
+            oepThread.interrupt();
+        }
+        InputEventReplayer iep = new InputEventReplayer(dec, area2, socket);
+        OutputEventReplayer oep = new OutputEventReplayer(dec, socket);
+        iepThread = new Thread(iep);
+        oepThread = new Thread(oep);
+        iepThread.start();
+        oepThread.start();
+    }
 
 }

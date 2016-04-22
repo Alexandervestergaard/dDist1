@@ -8,7 +8,7 @@ import java.io.*;
  * ready for the next client.
  */
 
-public class Server implements Runnable{
+public class ServerLeander implements Runnable{
 
     /*
      * Your group should use port number 40HGG, where H is your "hold nummer (1,2 or 3) 
@@ -19,6 +19,7 @@ public class Server implements Runnable{
     public int portNumber = 40604;
     protected ServerSocket serverSocket;
     public String localhostAddress = "0";
+    public BufferedReader fromClient;
 
     /**
      *
@@ -94,7 +95,7 @@ public class Server implements Runnable{
             if (socket != null) {
                 System.out.println("Connection from " + socket);
                 try {
-                    BufferedReader fromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    fromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                     String s;
                     // Read and print what the client is sending
                     while ((s = fromClient.readLine()) != null) { // Ctrl-D terminates the connection

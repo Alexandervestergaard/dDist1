@@ -3,6 +3,9 @@
  */
 import javax.swing.JTextArea;
 import java.awt.EventQueue;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
 
 /**
  *
@@ -17,10 +20,12 @@ public class EventReplayer implements Runnable {
 
     private DocumentEventCapturer dec;
     private JTextArea area;
+    public Socket socket;
 
     public EventReplayer(DocumentEventCapturer dec, JTextArea area) {
         this.dec = dec;
         this.area = area;
+        socket = null;
     }
 
     public void run() {
@@ -34,7 +39,22 @@ public class EventReplayer implements Runnable {
                     EventQueue.invokeLater(new Runnable() {
                         public void run() {
                             try {
-                                area.insert(tie.getText(), tie.getOffset());
+                                if (socket!=null) {
+                                    ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+                                    oos.writeObject(tie);
+                                }
+
+                                if (socket!=null) {
+                                    ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+                                    MyTextEvent myTextEvent = (MyTextEvent)ois.readObject();
+                                    if (myTextEvent instanceof TextInsertEvent) {
+                                        TextInsertEvent myTextEventInsert = (TextInsertEvent) myTextEvent;
+                                        area.insert(myTextEventInsert.getText(), myTextEventInsert.getOffset());
+                                    }
+                                }
+
+                                //area.insert(tie.getText(), tie.getOffset());
+
                             } catch (Exception e) {
                                 System.err.println(e);
 				    /* We catch all axceptions, as an uncaught exception would make the

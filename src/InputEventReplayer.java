@@ -59,7 +59,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                         MyTextEvent mte = null;
                         while ((mte = (MyTextEvent) ois.readObject()) != null){
                             System.out.println("mte being added to event queue: " + mte);
-                            eventHistory.add(mte);
+                            eventHistory.add(mte); 
                             mte = null;
                         }
                     } catch (IOException e) {

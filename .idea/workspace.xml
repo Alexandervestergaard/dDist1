@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="5ccec0da-0510-4f08-ae79-2d992115f70f" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/DistributedTextEditor.java" afterPath="$PROJECT_DIR$/src/DistributedTextEditor.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/InputEventReplayer.java" afterPath="$PROJECT_DIR$/src/InputEventReplayer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/OutputEventReplayer.java" afterPath="$PROJECT_DIR$/src/OutputEventReplayer.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="dDistAfl1.iws" />
@@ -118,11 +116,11 @@
       <file leaf-file-name="InputEventReplayer.java" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/InputEventReplayer.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.33333334" vertical-offset="724" max-vertical-offset="2040">
-              <caret line="59" column="0" selection-start-line="59" selection-start-column="0" selection-end-line="59" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.42328042" vertical-offset="724" max-vertical-offset="2040">
+              <caret line="61" column="51" selection-start-line="61" selection-start-column="51" selection-end-line="61" selection-end-column="51" />
               <folding>
-                <element signature="e#1791#2510#0" expanded="true" />
-                <element signature="e#2499#2500#0" expanded="true" />
+                <element signature="e#1791#2511#0" expanded="true" />
+                <element signature="e#2500#2501#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -162,8 +160,8 @@
         <option value="$PROJECT_DIR$/src/MyTextEvent.java" />
         <option value="$PROJECT_DIR$/src/EventReplayer.java" />
         <option value="$PROJECT_DIR$/src/OutputEventReplayer.java" />
-        <option value="$PROJECT_DIR$/src/InputEventReplayer.java" />
         <option value="$PROJECT_DIR$/src/DistributedTextEditor.java" />
+        <option value="$PROJECT_DIR$/src/InputEventReplayer.java" />
       </list>
     </option>
   </component>
@@ -555,7 +553,11 @@
       <created>1461323084861</created>
       <updated>1461323084861</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="Virkede lige kortvarigt">
+      <created>1461412154222</created>
+      <updated>1461412154222</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -615,7 +617,8 @@
     <MESSAGE value="- Ready to test IO streams" />
     <MESSAGE value="- Added threads" />
     <MESSAGE value="- Virker ikke" />
-    <option name="LAST_COMMIT_MESSAGE" value="- Virker ikke" />
+    <MESSAGE value="Virkede lige kortvarigt" />
+    <option name="LAST_COMMIT_MESSAGE" value="Virkede lige kortvarigt" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
@@ -1104,11 +1107,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/InputEventReplayer.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.33333334" vertical-offset="724" max-vertical-offset="2040">
-          <caret line="59" column="0" selection-start-line="59" selection-start-column="0" selection-end-line="59" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.42328042" vertical-offset="724" max-vertical-offset="2040">
+          <caret line="61" column="51" selection-start-line="61" selection-start-column="51" selection-end-line="61" selection-end-column="51" />
           <folding>
-            <element signature="e#1791#2510#0" expanded="true" />
-            <element signature="e#2499#2500#0" expanded="true" />
+            <element signature="e#1791#2511#0" expanded="true" />
+            <element signature="e#2500#2501#0" expanded="true" />
           </folding>
         </state>
       </provider>

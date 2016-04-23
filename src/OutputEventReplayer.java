@@ -23,7 +23,10 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
         this.dec = dec;
         this.socket = socket;
         try {
-            oos = new ObjectOutputStream(socket.getOutputStream());
+            System.out.println("Outputeventreplayer about to create outputstream");
+            oos = new ObjectOutputStream(this.socket.getOutputStream());
+            oos.flush();
+            System.out.println("Outputeventreplayer created outputstream");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -35,9 +38,11 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
         while (!wasInterrupted) {
             waitForOneSecond();
             try {
-                MyTextEvent mte = dec.take();
-                oos.writeObject(mte);
-
+                MyTextEvent mte = (MyTextEvent) dec.take();
+                if (mte != null) {
+                    System.out.println("oos write to stream: " + mte.toString());
+                    oos.writeObject(mte);
+                }
 
             } catch (Exception _) {
                 wasInterrupted = true;

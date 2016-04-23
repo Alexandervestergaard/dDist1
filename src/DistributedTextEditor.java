@@ -13,8 +13,10 @@ public class DistributedTextEditor extends JFrame {
 
     private JTextArea area1 = new JTextArea(20,120);
     private JTextArea area2 = new JTextArea(20,120);
-    private JTextField ipaddress = new JTextField("IP address here");
-    private JTextField portNumber = new JTextField("Port number here");
+    //private JTextField ipaddress = new JTextField("IP address here");
+    private JTextField ipaddress = new JTextField("192.168.43.123");
+    //private JTextField portNumber = new JTextField("Port number here");
+    private JTextField portNumber = new JTextField("40604");
 
     private EventReplayer er;
     private Thread ert;
@@ -84,9 +86,9 @@ public class DistributedTextEditor extends JFrame {
                 "Try to type and delete stuff in the top area.\n" +
                 "Then figure out how it works.\n", 0);
 
-        er = new EventReplayer(dec, area2);
-        ert = new Thread(er);
-        ert.start();
+        //er = new EventReplayer(dec, area2);
+        //ert = new Thread(er);
+        //ert.start();
     }
 
     private KeyListener k1 = new KeyAdapter() {
@@ -160,6 +162,11 @@ public class DistributedTextEditor extends JFrame {
         Thread iepThread = new Thread(iep);
         Thread oepThread = new Thread(oep);
         iepThread.start();
+        try {
+            Thread.sleep(200);                 //1000 milliseconds is one second.
+        } catch(InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
         oepThread.start();
     }
 
@@ -230,11 +237,11 @@ public class DistributedTextEditor extends JFrame {
 
 class Server implements Runnable{
     private DocumentEventCapturer dec;
-    private JTextArea area2;
+    private JTextArea serverArea2;
 
-    Server(DocumentEventCapturer dec, JTextArea area2) {
+    Server(DocumentEventCapturer dec, JTextArea serverArea2) {
         this.dec = dec;
-        this.area2 = area2;
+        this.serverArea2 = serverArea2;
     }
 
     /*
@@ -251,6 +258,7 @@ class Server implements Runnable{
     public BufferedReader fromClient;
     private Thread iepThread = new Thread();
     private Thread oepThread = new Thread();
+
 
     /**
      *
@@ -319,15 +327,43 @@ class Server implements Runnable{
 
         registerOnPort();
 
+        socket = waitForConnectionFromClient();
+
+        createIOStreams(socket, dec, serverArea2);
+
         while (true) {
             socket = waitForConnectionFromClient();
-            System.out.println("Socket recieved");
-            createIOStreams(socket, dec, area2);
+
+            //createIOStreams(socket, dec, area2);
+
 
             if (socket != null) {
                 System.out.println("Connection from " + socket);
+                new Thread(new Runnable() {
+                    public void run() {
+                        try {
+
+
+                            // For reading from standard input
+                            BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+                            // For sending text to the server
+                            PrintWriter toServer = new PrintWriter(socket.getOutputStream(),true);
+                            String s;
+                            // Read from standard input and send to server
+                            // Ctrl-D terminates the connection
+                            System.out.print("Type something for the server and then RETURN> ");
+                            while ((s = stdin.readLine()) != null && !toServer.checkError()) {
+                                System.out.print("Type something for the server and then RETURN> ");
+                                toServer.println(s);
+                            }
+                            socket.close();
+                        } catch (IOException e) {
+                            // We ignore IOExceptions
+                        }
+                    }}).start();
+
                 try {
-                    fromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    BufferedReader fromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                     String s;
                     // Read and print what the client is sending
                     while ((s = fromClient.readLine()) != null) { // Ctrl-D terminates the connection
@@ -341,7 +377,6 @@ class Server implements Runnable{
                 System.out.println("Connection closed by client.");
             } else {
                 // We rather agressively terminate the server on the first connection exception
-                System.out.println("break");
                 break;
             }
         }
@@ -351,19 +386,19 @@ class Server implements Runnable{
         System.out.println("Goodbuy world!");
     }
 
-    private void createIOStreams(Socket socket, DocumentEventCapturer dec, JTextArea area2) {
-        if(iepThread.isAlive()) {
-            iepThread.interrupt();
-        }
+    private void createIOStreams(Socket socket, DocumentEventCapturer dec, JTextArea serverArea2) {
         if(oepThread.isAlive()) {
             oepThread.interrupt();
         }
-        InputEventReplayer iep = new InputEventReplayer(dec, area2, socket);
+        if(iepThread.isAlive()) {
+            iepThread.interrupt();
+        }
         OutputEventReplayer oep = new OutputEventReplayer(dec, socket);
-        iepThread = new Thread(iep);
+        InputEventReplayer iep = new InputEventReplayer(dec, serverArea2, socket);
         oepThread = new Thread(oep);
-        iepThread.start();
+        iepThread = new Thread(iep);
         oepThread.start();
+        iepThread.start();
     }
 
 
@@ -383,13 +418,14 @@ class Client implements Runnable {
     private Thread iepThread = new Thread();
     private Thread oepThread = new Thread();
     private DocumentEventCapturer dec;
-    private JTextArea area2;
+    private JTextArea clientArea2;
+    private String localhostAddress;
 
-    public Client(String serverName, String portNumber, DocumentEventCapturer dec, JTextArea area2) {
+    public Client(String serverName, String portNumber, DocumentEventCapturer dec, JTextArea clientArea2) {
         this.serverName = serverName;
         this.portNumber = Integer.parseInt(portNumber);
         this.dec = dec;
-        this.area2 = area2;
+        this.clientArea2 = clientArea2;
     }
 
     /**
@@ -399,7 +435,7 @@ class Client implements Runnable {
     protected void printLocalHostAddress() {
         try {
             InetAddress localhost = InetAddress.getLocalHost();
-            String localhostAddress = localhost.getHostAddress();
+            localhostAddress = localhost.getHostAddress();
             System.out.println("I'm a client running with IP address " + localhostAddress);
         } catch (UnknownHostException e) {
             System.err.println("Cannot resolve the Internet address of the local host.");
@@ -428,11 +464,30 @@ class Client implements Runnable {
 
         printLocalHostAddress();
 
-        Socket socket = connectToServer(serverName);
-        createIOStreams(socket, dec, area2);
+        final Socket socket = connectToServer(serverName);
+
+        createIOStreams(socket, dec, clientArea2);
 
         if (socket != null) {
             System.out.println("Connected to " + socket);
+            new Thread(new Runnable() {
+                public void run() {
+                    try {
+
+
+                        BufferedReader fromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                        String s;
+                        // Read and print what the client is sending
+                        while ((s = fromClient.readLine()) != null) { // Ctrl-D terminates the connection
+                            System.out.println("From the client: " + s);
+                        }
+                        socket.close();
+                    } catch (IOException e) {
+                        // We report but otherwise ignore IOExceptions
+                        System.err.println(e);
+                    }
+                }}).start();
+
             try {
                 // For reading from standard input
                 BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
@@ -455,19 +510,24 @@ class Client implements Runnable {
         System.out.println("Goodbuy world!");
     }
 
-    private void createIOStreams(Socket socket, DocumentEventCapturer dec, JTextArea area2) {
-        if(iepThread.isAlive()) {
-            iepThread.interrupt();
-        }
+    private void createIOStreams(Socket socket, DocumentEventCapturer dec, JTextArea clientArea2) {
         if(oepThread.isAlive()) {
             oepThread.interrupt();
         }
-        InputEventReplayer iep = new InputEventReplayer(dec, area2, socket);
+        if(iepThread.isAlive()) {
+            iepThread.interrupt();
+        }
         OutputEventReplayer oep = new OutputEventReplayer(dec, socket);
-        iepThread = new Thread(iep);
+        InputEventReplayer iep = new InputEventReplayer(dec, clientArea2, socket);
         oepThread = new Thread(oep);
-        iepThread.start();
+        iepThread = new Thread(iep);
         oepThread.start();
+        try {
+            Thread.sleep(200);                 //1000 milliseconds is one second.
+        } catch(InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+        iepThread.start();
     }
 
 }

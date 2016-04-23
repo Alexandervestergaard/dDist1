@@ -26,8 +26,8 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
     private JTextArea area;
     public Socket socket;
     private ObjectInputStream ois;
-    LinkedBlockingQueue<MyTextEvent> eventHistory;
-    private Thread EventQueThread;
+    private LinkedBlockingQueue<MyTextEvent> eventHistory;
+    private Thread EventQueThread = new Thread();
 
     public InputEventReplayer(DocumentEventCapturer dec, JTextArea area, Socket socket) {
         this.dec = dec;
@@ -35,7 +35,9 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         this.socket = socket;
         try {
             System.out.println("About to create input stream");
-            ois = new ObjectInputStream(socket.getInputStream());
+            //this.socket = new Socket("192.168.43.123", 40604);
+            System.out.println("Socket being used: " + this.socket);
+            ois = new ObjectInputStream(this.socket.getInputStream());
             System.out.println("Created objectinput stream");
         } catch (IOException e) {
             e.printStackTrace();
@@ -54,7 +56,12 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             public void run() {
                 while (true) {
                     try {
-                        eventHistory.add((MyTextEvent) ois.readObject());
+                        MyTextEvent mte = null;
+                        while ((mte = (MyTextEvent) ois.readObject()) != null){
+                            System.out.println("mte being added to event queue: " + mte);
+                            eventHistory.add(mte);
+                            mte = null;
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (ClassNotFoundException e) {
@@ -78,7 +85,9 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                         public void run() {
                             try {
 
+                                System.out.println("tie in event queue, trying to write to area2 ");
                                 area.insert(tie.getText(), tie.getOffset());
+
 
                             } catch (Exception e) {
                                 System.err.println(e);

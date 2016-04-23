@@ -1,3 +1,4 @@
+import javax.swing.*;
 import java.net.*;
 import java.io.*;
 
@@ -10,21 +11,35 @@ import java.io.*;
 
 public class ServerLeander implements Runnable{
 
+
+    private DocumentEventCapturer serverDec;
+    private JTextArea serverArea2;
+
+    public ServerLeander(DocumentEventCapturer serverDec, JTextArea serverArea2) {
+        this.serverDec = serverDec;
+        this.serverArea2 = serverArea2;
+    }
+
     /*
-     * Your group should use port number 40HGG, where H is your "hold nummer (1,2 or 3) 
-     * and GG is gruppe nummer 00, 01, 02, ... So, if you are in group 3 on hold 1 you
-     * use the port number 40103. This will avoid the unfortunate situation that you
-     * connect to each others servers.
-     */
-    public int portNumber = 40604;
-    protected ServerSocket serverSocket;
-    public String localhostAddress = "0";
+         * Your group should use port number 40HGG, where H is your "hold nummer (1,2 or 3)
+         * and GG is gruppe nummer 00, 01, 02, ... So, if you are in group 3 on hold 1 you
+         * use the port number 40103. This will avoid the unfortunate situation that you
+         * connect to each others servers.
+         */
+    protected int portNumber = 40604;
+    protected ServerSocket serverSocket = null;
+    protected Socket res = null;
+    protected Socket socket = null;
+    protected String localhostAddress = "0";
     public BufferedReader fromClient;
+    private Thread iepThread = new Thread();
+    private Thread oepThread = new Thread();
+
 
     /**
      *
      * Will print out the IP address of the local host and the port on which this
-     * server is accepting connections. 
+     * server is accepting connections.
      */
     protected void printLocalHostAddress() {
         try {
@@ -67,12 +82,12 @@ public class ServerLeander implements Runnable{
 
     /**
      *
-     * Waits for the next client to connect on port number portNumber or takes the 
+     * Waits for the next client to connect on port number portNumber or takes the
      * next one in line in case a client is already trying to connect. Returns the
      * socket of the connection, null if there were any failures.
      */
     protected Socket waitForConnectionFromClient() {
-        Socket res = null;
+        res = null;
         try {
             res = serverSocket.accept();
         } catch (IOException e) {
@@ -88,14 +103,44 @@ public class ServerLeander implements Runnable{
 
         registerOnPort();
 
+        socket = waitForConnectionFromClient();
+
+        createIOStreams(socket, serverDec, serverArea2);
+        deregisterOnPort();
+
         while (true) {
-            Socket socket = waitForConnectionFromClient();
-            System.out.println("Socket recieved");
+            socket = waitForConnectionFromClient();
+
+            //createIOStreams(socket, dec, area2);
+
 
             if (socket != null) {
                 System.out.println("Connection from " + socket);
+                new Thread(new Runnable() {
+                    public void run() {
+                        try {
+
+
+                            // For reading from standard input
+                            BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+                            // For sending text to the server
+                            PrintWriter toServer = new PrintWriter(socket.getOutputStream(),true);
+                            String s;
+                            // Read from standard input and send to server
+                            // Ctrl-D terminates the connection
+                            System.out.print("Type something for the server and then RETURN> ");
+                            while ((s = stdin.readLine()) != null && !toServer.checkError()) {
+                                System.out.print("Type something for the server and then RETURN> ");
+                                toServer.println(s);
+                            }
+                            socket.close();
+                        } catch (IOException e) {
+                            // We ignore IOExceptions
+                        }
+                    }}).start();
+
                 try {
-                    fromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    BufferedReader fromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                     String s;
                     // Read and print what the client is sending
                     while ((s = fromClient.readLine()) != null) { // Ctrl-D terminates the connection
@@ -109,7 +154,6 @@ public class ServerLeander implements Runnable{
                 System.out.println("Connection closed by client.");
             } else {
                 // We rather agressively terminate the server on the first connection exception
-                System.out.println("break");
                 break;
             }
         }
@@ -119,5 +163,24 @@ public class ServerLeander implements Runnable{
         System.out.println("Goodbuy world!");
     }
 
+    private void createIOStreams(Socket socket, DocumentEventCapturer serverDec, JTextArea serverArea2) {
+        if(oepThread.isAlive()) {
+            oepThread.interrupt();
+        }
+        if(iepThread.isAlive()) {
+            iepThread.interrupt();
+        }
+        OutputEventReplayer oep = new OutputEventReplayer(serverDec, socket);
+        InputEventReplayer iep = new InputEventReplayer(serverDec, serverArea2, socket);
+        oepThread = new Thread(oep);
+        iepThread = new Thread(iep);
+        oepThread.start();
+        try {
+            Thread.sleep(1000);                 //1000 milliseconds is one second.
+        } catch(InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+        iepThread.start();
+    }
 
 }

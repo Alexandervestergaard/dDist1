@@ -5,9 +5,7 @@
 import javax.swing.*;
 import javax.swing.tree.ExpandVetoException;
 import java.awt.*;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -33,15 +31,15 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         this.dec = dec;
         this.area = area;
         this.socket = socket;
-        try {
+        /*try {
             System.out.println("About to create input stream");
-            //this.socket = new Socket("192.168.43.123", 40604);
+            //this.socket = new Socket("192.168.43.123",40604);
             System.out.println("Socket being used: " + this.socket);
             ois = new ObjectInputStream(this.socket.getInputStream());
             System.out.println("Created objectinput stream");
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
         eventHistory = new LinkedBlockingQueue<MyTextEvent>();
         startEventQueThread();
         System.out.println("Inputstream created and event queing thread started");
@@ -56,12 +54,19 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             public void run() {
                 while (true) {
                     try {
+                        ois = new ObjectInputStream(socket.getInputStream());
                         MyTextEvent mte = null;
                         while ((mte = (MyTextEvent) ois.readObject()) != null){
                             System.out.println("mte being added to event queue: " + mte);
                             eventHistory.add(mte);
                             mte = null;
                         }
+                        //ois.close();
+                        //socket.close();
+                    } catch (EOFException e){
+
+                    } catch (OptionalDataException e){
+
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (ClassNotFoundException e) {

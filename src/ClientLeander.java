@@ -1,4 +1,5 @@
 
+import javax.swing.*;
 import java.net.*;
         import java.io.*;
 
@@ -18,10 +19,18 @@ public class ClientLeander implements Runnable {
      */
     private int portNumber = 40604;
     private String serverName;
+    protected Socket res = null;
+    private Thread iepThread = new Thread();
+    private Thread oepThread = new Thread();
+    private DocumentEventCapturer clientDec;
+    private JTextArea clientArea2;
+    private String localhostAddress;
 
-    public ClientLeander(String serverName, String portNumber) {
+    public ClientLeander(String serverName, String portNumber, DocumentEventCapturer clientDec, JTextArea clientArea2) {
         this.serverName = serverName;
         this.portNumber = Integer.parseInt(portNumber);
+        this.clientDec = clientDec;
+        this.clientArea2 = clientArea2;
     }
 
     /**
@@ -31,7 +40,7 @@ public class ClientLeander implements Runnable {
     protected void printLocalHostAddress() {
         try {
             InetAddress localhost = InetAddress.getLocalHost();
-            String localhostAddress = localhost.getHostAddress();
+            localhostAddress = localhost.getHostAddress();
             System.out.println("I'm a client running with IP address " + localhostAddress);
         } catch (UnknownHostException e) {
             System.err.println("Cannot resolve the Internet address of the local host.");
@@ -45,7 +54,7 @@ public class ClientLeander implements Runnable {
      * Connects to the server on IP address serverName and port number portNumber.
      */
     protected Socket connectToServer(String serverName) {
-        Socket res = null;
+        res = null;
         try {
             res = new Socket(serverName,portNumber);
         } catch (IOException e) {
@@ -60,10 +69,30 @@ public class ClientLeander implements Runnable {
 
         printLocalHostAddress();
 
-        Socket socket = connectToServer(serverName);
+        final Socket socket = connectToServer(serverName);
+
+        createIOStreams(socket, clientDec, clientArea2);
 
         if (socket != null) {
             System.out.println("Connected to " + socket);
+            new Thread(new Runnable() {
+                public void run() {
+                    try {
+
+
+                        BufferedReader fromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                        String s;
+                        // Read and print what the client is sending
+                        while ((s = fromClient.readLine()) != null) { // Ctrl-D terminates the connection
+                            System.out.println("From the client: " + s);
+                        }
+                        socket.close();
+                    } catch (IOException e) {
+                        // We report but otherwise ignore IOExceptions
+                        System.err.println(e);
+                    }
+                }}).start();
+
             try {
                 // For reading from standard input
                 BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
@@ -86,5 +115,23 @@ public class ClientLeander implements Runnable {
         System.out.println("Goodbuy world!");
     }
 
-
+    private void createIOStreams(Socket socket, DocumentEventCapturer clientDec, JTextArea clientArea2) {
+        if(oepThread.isAlive()) {
+            oepThread.interrupt();
+        }
+        if(iepThread.isAlive()) {
+            iepThread.interrupt();
+        }
+        OutputEventReplayer oep = new OutputEventReplayer(clientDec, socket);
+        InputEventReplayer iep = new InputEventReplayer(clientDec, clientArea2, socket);
+        oepThread = new Thread(oep);
+        iepThread = new Thread(iep);
+        oepThread.start();
+        try {
+            Thread.sleep(1000);                 //1000 milliseconds is one second.
+        } catch(InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+        iepThread.start();
+    }
 }

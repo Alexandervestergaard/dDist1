@@ -42,6 +42,7 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
                 if (mte != null) {
                     System.out.println("oos write to stream: " + mte.toString());
                     oos.writeObject(mte);
+                    //oos.flush();
                 }
 
             } catch (Exception _) {

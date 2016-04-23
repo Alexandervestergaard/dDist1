@@ -106,7 +106,7 @@ public class ServerLeander implements Runnable{
         socket = waitForConnectionFromClient();
 
         createIOStreams(socket, serverDec, serverArea2);
-        deregisterOnPort();
+        //deregisterOnPort();
 
         while (true) {
             socket = waitForConnectionFromClient();

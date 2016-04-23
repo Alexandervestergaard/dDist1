@@ -25,6 +25,7 @@ public class ClientLeander implements Runnable {
     private DocumentEventCapturer clientDec;
     private JTextArea clientArea2;
     private String localhostAddress;
+    protected Socket socket = null;
 
     public ClientLeander(String serverName, String portNumber, DocumentEventCapturer clientDec, JTextArea clientArea2) {
         this.serverName = serverName;
@@ -69,7 +70,7 @@ public class ClientLeander implements Runnable {
 
         printLocalHostAddress();
 
-        final Socket socket = connectToServer(serverName);
+        socket = connectToServer(serverName);
 
         createIOStreams(socket, clientDec, clientArea2);
 
@@ -78,7 +79,7 @@ public class ClientLeander implements Runnable {
             new Thread(new Runnable() {
                 public void run() {
                     try {
-
+                        socket = connectToServer(serverName);
 
                         BufferedReader fromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                         String s;

@@ -2,11 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="5ccec0da-0510-4f08-ae79-2d992115f70f" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ClientLeander.java" afterPath="$PROJECT_DIR$/src/ClientLeander.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/DistributedTextEditor.java" afterPath="$PROJECT_DIR$/src/DistributedTextEditor.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/InputEventReplayer.java" afterPath="$PROJECT_DIR$/src/InputEventReplayer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/OutputEventReplayer.java" afterPath="$PROJECT_DIR$/src/OutputEventReplayer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ServerLeander.java" afterPath="$PROJECT_DIR$/src/ServerLeander.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="dDistAfl1.iws" />
@@ -163,7 +158,7 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="LeanderBranch" />
+        <entry key="$PROJECT_DIR$" value="LeanderVirkerIkke" />
       </map>
     </option>
   </component>
@@ -565,12 +560,16 @@
       <created>1461412249633</created>
       <updated>1461412249633</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="- Virker den ene vej">
+      <created>1461436147414</created>
+      <updated>1461436147414</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1382" height="754" extended-state="6" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
       <window_info id="Palette&#9;" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -581,7 +580,7 @@
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32843137" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3971061" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.31028938" sideWeight="0.5003785" order="1" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.31028938" sideWeight="0.5003785" order="1" side_tool="true" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="simpleUML" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -627,7 +626,8 @@
     <MESSAGE value="- Virker ikke" />
     <MESSAGE value="Virkede lige kortvarigt" />
     <MESSAGE value="Virkede lige kortvarigt2" />
-    <option name="LAST_COMMIT_MESSAGE" value="Virkede lige kortvarigt2" />
+    <MESSAGE value="- Virker den ene vej" />
+    <option name="LAST_COMMIT_MESSAGE" value="- Virker den ene vej" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />

@@ -36,6 +36,9 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         System.out.println("Inputstream created and event queing thread started");
     }
 
+    /*
+    En tråd bruges til løbende at hive objekter ud fra streamen, og gemme dem i eventHistory-køen
+     */
     private void startEventQueThread() {
         if(EventQueThread.isAlive()) {
             EventQueThread.interrupt();
@@ -71,6 +74,9 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         boolean wasInterrupted = false;
         while (!wasInterrupted) {
             try {
+                /*
+                MyTextEvent-objekter hives ud af eventHistory, meget lig EventReplayer
+                 */
                 MyTextEvent mte = eventHistory.take();
                 if (mte instanceof TextInsertEvent) {
                     final TextInsertEvent tie = (TextInsertEvent)mte;

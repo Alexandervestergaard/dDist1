@@ -19,6 +19,12 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
     private Socket socket;
     private ObjectOutputStream oos;
 
+
+    /*
+    Konstruktøren sørger for at oprette en OjectOutputStream på socket'en.
+    Denne bruges til at sende MyTextEvent-objekter, hentet fra den originale DocumentEventCapturer, ud
+    på streamen.
+     */
     public OutputEventReplayer(DocumentEventCapturer dec, Socket socket) {
         this.dec = dec;
         this.socket = socket;
@@ -32,6 +38,9 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
         }
     }
 
+    /*
+    Denne tråd vil løbende sende de MyTextEvent-objekter som dec'en registrerer, ud på streamen
+     */
     @Override
     public void run() {
         boolean wasInterrupted = false;

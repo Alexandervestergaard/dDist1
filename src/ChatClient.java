@@ -9,7 +9,7 @@ import java.net.*;
  * send the text to the server.
  */
 
-public class ClientLeander implements Runnable {
+public class ChatClient implements Runnable {
 
     /*
      * Your group should use port number 40HGG, where H is your "hold nummer (1,2 or 3)
@@ -27,7 +27,7 @@ public class ClientLeander implements Runnable {
     private String localhostAddress;
     protected Socket socket = null;
 
-    public ClientLeander(String serverName, String portNumber, DocumentEventCapturer clientDec, JTextArea clientArea2) {
+    public ChatClient(String serverName, String portNumber, DocumentEventCapturer clientDec, JTextArea clientArea2) {
         this.serverName = serverName;
         this.portNumber = Integer.parseInt(portNumber);
         this.clientDec = clientDec;

@@ -36,13 +36,11 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
     public void run() {
         boolean wasInterrupted = false;
         while (!wasInterrupted) {
-            waitForOneSecond();
             try {
                 MyTextEvent mte = (MyTextEvent) dec.take();
                 if (mte != null) {
                     System.out.println("oos write to stream: " + mte.toString());
                     oos.writeObject(mte);
-                    //oos.flush();
                 }
 
             } catch (Exception _) {

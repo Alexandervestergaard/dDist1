@@ -106,7 +106,7 @@ public class DistributedTextEditor extends JFrame {
             saveOld();
             area1.setText("");
             // TODO: Become a server listening for connections on some port.
-            ServerLeander server = new ServerLeander(dec, area2);
+            ChatServer server = new ChatServer(dec, area2);
             Thread serverThread = new Thread(server);
             serverThread.start();
             try {
@@ -118,16 +118,6 @@ public class DistributedTextEditor extends JFrame {
             String localhostAddress = server.localhostAddress;
             System.out.println("localhost address: " + localhostAddress);
             setTitle("I'm listening on " + localhostAddress);
-
-
-            /*try {
-                System.out.println("Server socket: " + server.socket);
-                createIOStreams(server.socket);
-                Thread.sleep(1000);
-            } catch (InterruptedException e1) {
-                e1.printStackTrace();
-            }*/
-
 
             changed = true;
             Save.setEnabled(true);
@@ -141,7 +131,7 @@ public class DistributedTextEditor extends JFrame {
             area1.setText("");
             setTitle("Connecting to " + ipaddress.getText() + ":" + portNumber.getText() + "...");
 
-            ClientLeander client = new ClientLeander(ipaddress.getText(), portNumber.getText(), dec, area2);
+            ChatClient client = new ChatClient(ipaddress.getText(), portNumber.getText(), dec, area2);
             Thread clientThread = new Thread(client);
             clientThread.start();
             try {
@@ -149,8 +139,6 @@ public class DistributedTextEditor extends JFrame {
             } catch(InterruptedException ex) {
                 Thread.currentThread().interrupt();
             }
-
-            //createIOStreams(client.res);
 
             changed = true;
             Save.setEnabled(true);
@@ -176,6 +164,7 @@ public class DistributedTextEditor extends JFrame {
         public void actionPerformed(ActionEvent e) {
             setTitle("Disconnected");
             // TODO
+
         }
     };
 

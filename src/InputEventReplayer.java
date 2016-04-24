@@ -31,15 +31,6 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         this.dec = dec;
         this.area = area;
         this.socket = socket;
-        /*try {
-            System.out.println("About to create input stream");
-            //this.socket = new Socket("192.168.43.123",40604);
-            System.out.println("Socket being used: " + this.socket);
-            ois = new ObjectInputStream(this.socket.getInputStream());
-            System.out.println("Created objectinput stream");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }*/
         eventHistory = new LinkedBlockingQueue<MyTextEvent>();
         startEventQueThread();
         System.out.println("Inputstream created and event queing thread started");
@@ -61,8 +52,6 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                             eventHistory.add(mte);
                             mte = null;
                         }
-                        //ois.close();
-                        //socket.close();
                     } catch (EOFException e){
 
                     } catch (OptionalDataException e){
@@ -81,7 +70,6 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
     public void run() {
         boolean wasInterrupted = false;
         while (!wasInterrupted) {
-            //waitForOneSecond();
             try {
                 MyTextEvent mte = eventHistory.take();
                 if (mte instanceof TextInsertEvent) {
@@ -96,7 +84,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
 
                             } catch (Exception e) {
                                 System.err.println(e);
-				    /* We catch all axceptions, as an uncaught exception would make the
+				    /* We catch all exceptions, as an uncaught exception would make the
 				     * EDT unwind, which is now healthy.
 				     */
                             }
@@ -110,7 +98,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                                 area.replaceRange(null, tre.getOffset(), tre.getOffset()+tre.getLength());
                             } catch (Exception e) {
                                 System.err.println(e);
-				    /* We catch all axceptions, as an uncaught exception would make the
+				    /* We catch all exceptions, as an uncaught exception would make the
 				     * EDT unwind, which is now healthy.
 				     */
                             }

@@ -180,4 +180,9 @@ public class ChatServer implements Runnable{
         iepThread.start();
     }
 
+    public void disconnect() {
+        deregisterOnPort();
+        iepThread.interrupt();
+        oepThread.interrupt();
+    }
 }

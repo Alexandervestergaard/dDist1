@@ -116,6 +116,18 @@ public class ChatClient implements Runnable {
         System.out.println("Goodbuy world!");
     }
 
+    public void disconnect(){
+        try {
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        socket = null;
+        res = null;
+        oepThread.interrupt();
+        iepThread.interrupt();
+    }
+
     private void createIOStreams(Socket socket, DocumentEventCapturer clientDec, JTextArea clientArea2) {
         if(oepThread.isAlive()) {
             oepThread.interrupt();

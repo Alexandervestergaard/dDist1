@@ -31,6 +31,11 @@ public class DistributedTextEditor extends JFrame {
     private boolean connected = false;
     private DocumentEventCapturer dec = new DocumentEventCapturer();
 
+    private ChatClient client;
+    private Thread clientThread;
+    private ChatServer server;
+    private Thread serverThread;
+
     public DistributedTextEditor() {
         area1.setFont(new Font("Monospaced",Font.PLAIN,12));
 
@@ -106,8 +111,8 @@ public class DistributedTextEditor extends JFrame {
             saveOld();
             area1.setText("");
             // TODO: Become a server listening for connections on some port.
-            ChatServer server = new ChatServer(dec, area2);
-            Thread serverThread = new Thread(server);
+            server = new ChatServer(dec, area2);
+            serverThread = new Thread(server);
             serverThread.start();
             try {
                 Thread.sleep(1000);                 //1000 milliseconds is one second.
@@ -131,8 +136,8 @@ public class DistributedTextEditor extends JFrame {
             area1.setText("");
             setTitle("Connecting to " + ipaddress.getText() + ":" + portNumber.getText() + "...");
 
-            ChatClient client = new ChatClient(ipaddress.getText(), portNumber.getText(), dec, area2);
-            Thread clientThread = new Thread(client);
+            client = new ChatClient(ipaddress.getText(), portNumber.getText(), dec, area2);
+            clientThread = new Thread(client);
             clientThread.start();
             try {
                 Thread.sleep(1000);                 //1000 milliseconds is one second.
@@ -163,7 +168,20 @@ public class DistributedTextEditor extends JFrame {
     Action Disconnect = new AbstractAction("Disconnect") {
         public void actionPerformed(ActionEvent e) {
             setTitle("Disconnected");
-            // TODO
+            if (server != null){
+                server.disconnect();
+                server = null;
+                serverThread.interrupt();
+                area1.setText("");
+                area2.setText("");
+            }
+            else if(client != null){
+                client.disconnect();
+                client = null;
+                clientThread.interrupt();
+                area1.setText("");
+                area2.setText("");
+            }
 
         }
     };

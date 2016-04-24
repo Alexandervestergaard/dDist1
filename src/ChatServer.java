@@ -26,6 +26,11 @@ public class ChatServer implements Runnable{
          * use the port number 40103. This will avoid the unfortunate situation that you
          * connect to each others servers.
          */
+
+    /*
+     * Variables that will be used by the program. socket is the Socket that is used for communication.
+     * iep and oep are InputEventReplayers and OutputEventReplayer respectively. They will be used to send events.
+     */
     protected int portNumber = 40604;
     protected ServerSocket serverSocket = null;
     protected Socket res = null;
@@ -69,6 +74,9 @@ public class ChatServer implements Runnable{
         }
     }
 
+    /*
+     * Deregisters on the port by closing it and clearing the variable.
+     */
     public void deregisterOnPort() {
         if (serverSocket != null) {
             try {
@@ -96,6 +104,10 @@ public class ChatServer implements Runnable{
         return res;
     }
 
+    /*
+     * Modified code from DemoServer. Starts the server by creating and running threads with streams that will be used
+     * to communicate with the client. Also registers on the socket.
+     */
     public void run() {
         System.out.println("Hello world!");
 
@@ -113,42 +125,7 @@ public class ChatServer implements Runnable{
 
             if (socket != null) {
                 System.out.println("Connection from " + socket);
-                new Thread(new Runnable() {
-                    public void run() {
-                        try {
 
-
-                            // For reading from standard input
-                            BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
-                            // For sending text to the server
-                            PrintWriter toServer = new PrintWriter(socket.getOutputStream(),true);
-                            String s;
-                            // Read from standard input and send to server
-                            // Ctrl-D terminates the connection
-                            System.out.print("Type something for the server and then RETURN> ");
-                            while ((s = stdin.readLine()) != null && !toServer.checkError()) {
-                                System.out.print("Type something for the server and then RETURN> ");
-                                toServer.println(s);
-                            }
-                            socket.close();
-                        } catch (IOException e) {
-                            // We ignore IOExceptions
-                        }
-                    }}).start();
-
-                try {
-                    BufferedReader fromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                    String s;
-                    // Read and print what the client is sending
-                    while ((s = fromClient.readLine()) != null) { // Ctrl-D terminates the connection
-                        System.out.println("From the client: " + s);
-                    }
-                    socket.close();
-                } catch (IOException e) {
-                    // We report but otherwise ignore IOExceptions
-                    System.err.println(e);
-                }
-                System.out.println("Connection closed by client.");
             } else {
                 // We rather agressively terminate the server on the first connection exception
                 break;
@@ -160,6 +137,9 @@ public class ChatServer implements Runnable{
         System.out.println("Goodbuy world!");
     }
 
+    /*
+     * sets up Replayers and Threads to run them. The Replayers sends and reads textevents to communicate with the client.
+     */
     private void createIOStreams(Socket socket, DocumentEventCapturer serverDec, JTextArea serverArea2) {
         if(oepThread.isAlive()) {
             oepThread.interrupt();
@@ -180,6 +160,9 @@ public class ChatServer implements Runnable{
         iepThread.start();
     }
 
+    /*
+     * An attempt at disconnecting. Deregisters on the port and interrupts the streams. Works with both client and server disconnects.
+     */
     public void disconnect() {
         deregisterOnPort();
         iepThread.interrupt();

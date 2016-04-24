@@ -106,6 +106,9 @@ public class DistributedTextEditor extends JFrame {
         }
     };
 
+    /*
+     * Sets up a server. Starts a Thread with the server.
+     */
     Action Listen = new AbstractAction("Listen") {
         public void actionPerformed(ActionEvent e) {
             saveOld();
@@ -130,6 +133,9 @@ public class DistributedTextEditor extends JFrame {
         }
     };
 
+    /*
+     * Sets up a client and starts a Thread with the client.
+     */
     Action Connect = new AbstractAction("Connect") {
         public void actionPerformed(ActionEvent e) {
             saveOld();
@@ -151,20 +157,10 @@ public class DistributedTextEditor extends JFrame {
         }
     };
 
-    private void createIOStreams(Socket socket) {
-        InputEventReplayer iep = new InputEventReplayer(dec, area2, socket);
-        OutputEventReplayer oep = new OutputEventReplayer(dec, socket);
-        Thread iepThread = new Thread(iep);
-        Thread oepThread = new Thread(oep);
-        iepThread.start();
-        try {
-            Thread.sleep(200);                 //1000 milliseconds is one second.
-        } catch(InterruptedException ex) {
-            Thread.currentThread().interrupt();
-        }
-        oepThread.start();
-    }
-
+    /*
+     * An attempt at disconnecting. Detects wether it is currently set to listen or connect.
+     * Then changes the title and calls the disconnectmethod on the server or client.
+     */
     Action Disconnect = new AbstractAction("Disconnect") {
         public void actionPerformed(ActionEvent e) {
             setTitle("Disconnected");

@@ -64,10 +64,11 @@ public class ChatClient implements Runnable {
         return res;
     }
 
+    /*
+     * Modified code from DEmoClient. Sets up a connection with the server by creating the streams that will be used to communicate.
+     * Also sets up the socket.
+     */
     public void run() {
-        System.out.println("Hello world!");
-        System.out.println("Type CTRL-D to shut down the client.");
-
         printLocalHostAddress();
 
         socket = connectToServer(serverName);
@@ -76,46 +77,17 @@ public class ChatClient implements Runnable {
 
         if (socket != null) {
             System.out.println("Connected to " + socket);
-            new Thread(new Runnable() {
-                public void run() {
-                    try {
-                        socket = connectToServer(serverName);
 
-                        BufferedReader fromClient = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                        String s;
-                        // Read and print what the client is sending
-                        while ((s = fromClient.readLine()) != null) { // Ctrl-D terminates the connection
-                            System.out.println("From the client: " + s);
-                        }
-                        socket.close();
-                    } catch (IOException e) {
-                        // We report but otherwise ignore IOExceptions
-                        System.err.println(e);
-                    }
-                }}).start();
 
-            try {
-                // For reading from standard input
-                BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
-                // For sending text to the server
-                PrintWriter toServer = new PrintWriter(socket.getOutputStream(),true);
-                String s;
-                // Read from standard input and send to server
-                // Ctrl-D terminates the connection
-                System.out.print("Type something for the server and then RETURN> ");
-                while ((s = stdin.readLine()) != null && !toServer.checkError()) {
-                    System.out.print("Type something for the server and then RETURN> ");
-                    toServer.println(s);
-                }
-                socket.close();
-            } catch (IOException e) {
-                // We ignore IOExceptions
-            }
         }
 
         System.out.println("Goodbuy world!");
     }
 
+    /*
+     * An attempt at disconnectiing. Closes the socket, stops teh threads with the streams and clears the variables.
+     * Works when both client and server disconnects.
+     */
     public void disconnect(){
         try {
             socket.close();
@@ -128,6 +100,9 @@ public class ChatClient implements Runnable {
         iepThread.interrupt();
     }
 
+    /*
+     * sets up Replayers and Threads to run them. The Replayers sends and reads textevents to communicate with the client.
+     */
     private void createIOStreams(Socket socket, DocumentEventCapturer clientDec, JTextArea clientArea2) {
         if(oepThread.isAlive()) {
             oepThread.interrupt();

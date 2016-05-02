@@ -11,7 +11,7 @@ import java.net.UnknownHostException;
 
 public class DistributedTextEditor extends JFrame {
 
-    private JTextArea area1 = new JTextArea(10,120);
+    protected JTextArea area1 = new JTextArea(10,120);
     private JTextArea area2 = new JTextArea(10,120);
     //private JTextArea area1 = new JTextArea(20,120);
     //private JTextArea area2 = new JTextArea(20,120);
@@ -100,6 +100,8 @@ public class DistributedTextEditor extends JFrame {
 
     private KeyListener k1 = new KeyAdapter() {
         public void keyPressed(KeyEvent e) {
+            System.out.println("Setting lastTextOutider to false");
+            dec.lastTextWasFromOutsider(false);
             changed = true;
             Save.setEnabled(true);
             SaveAs.setEnabled(true);

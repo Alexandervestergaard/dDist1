@@ -48,8 +48,10 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
             try {
                 MyTextEvent mte = (MyTextEvent) dec.take();
                 if (mte != null) {
-                    System.out.println("oos write to stream: " + mte.toString());
-                    oos.writeObject(mte);
+                    System.out.println("oos write to stream: " + mte.toString() + " at offset: " + mte.getOffset());
+                    if(!dec.getWasLastTextFromOutsider()) {
+                        oos.writeObject(mte);
+                    }
                 }
 
             } catch (Exception _) {

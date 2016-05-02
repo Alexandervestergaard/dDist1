@@ -30,6 +30,8 @@ public class DocumentEventCapturer extends DocumentFilter {
     protected LinkedBlockingQueue<MyTextEvent> eventHistory = new LinkedBlockingQueue<MyTextEvent>();
     private String lastStr = "";
     private int lastOffset = 0;
+    private int lastLength = 0;
+    private boolean lastWasFromOutsider = true;
 
     /**
      * If the queue is empty, then the call will block until an element arrives.
@@ -46,19 +48,21 @@ public class DocumentEventCapturer extends DocumentFilter {
             throws BadLocationException {
 
 	/* Queue a copy of the event and then modify the textarea */
-        if(!(str.equals(lastStr)) || offset != lastOffset) {
-            lastStr = str;
-            lastOffset = offset;
             eventHistory.add(new TextInsertEvent(offset, str));
             super.insertString(fb, offset, str, a);
-        }
+
     }
 
     public void remove(FilterBypass fb, int offset, int length)
             throws BadLocationException {
-	/* Queue a copy of the event and then modify the textarea */
-        eventHistory.add(new TextRemoveEvent(offset, length));
-        super.remove(fb, offset, length);
+    /* Queue a copy of the event and then modify the textarea */
+        System.out.println("dec adding TextRemoveEvent to eventHistory");
+        if (offset != lastOffset || !lastWasFromOutsider) {
+            lastOffset = offset;
+            System.out.println("Offset: " + offset);
+            eventHistory.add(new TextRemoveEvent(offset, length));
+            super.remove(fb, offset, length);
+        }
     }
 
     public void replace(FilterBypass fb, int offset,
@@ -67,7 +71,7 @@ public class DocumentEventCapturer extends DocumentFilter {
             throws BadLocationException {
 
 	/* Queue a copy of the event and then modify the text */
-        if(!(str.equals(lastStr)) || offset != lastOffset) {
+        if(offset != lastOffset || !lastWasFromOutsider) {
             lastStr = str;
             lastOffset = offset;
             if (length > 0) {
@@ -76,5 +80,17 @@ public class DocumentEventCapturer extends DocumentFilter {
             eventHistory.add(new TextInsertEvent(offset, str));
             super.replace(fb, offset, length, str, a);
         }
+    }
+
+    public void setLastOffset(int lastOffset) {
+        this.lastOffset = lastOffset;
+    }
+
+    public void lastTextWasFromOutsider(boolean b) {
+        lastWasFromOutsider = b;
+    }
+
+    public boolean getWasLastTextFromOutsider() {
+        return lastWasFromOutsider;
     }
 }

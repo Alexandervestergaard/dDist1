@@ -52,6 +52,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                         MyTextEvent mte = null;
                         while ((mte = (MyTextEvent) ois.readObject()) != null){
                             System.out.println("mte being added to event queue: " + mte);
+                            dec.lastTextWasFromOutsider(true);
                             eventHistory.add(mte);
                             mte = null;
                         }
@@ -101,6 +102,8 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                     EventQueue.invokeLater(new Runnable() {
                         public void run() {
                             try {
+                                System.out.println("Remove Event at offset: " + tre.getOffset());
+                                System.out.println(tre.toString());
                                 area.replaceRange(null, tre.getOffset(), tre.getOffset()+tre.getLength());
                             } catch (Exception e) {
                                 System.err.println(e);

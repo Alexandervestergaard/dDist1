@@ -83,11 +83,10 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                     EventQueue.invokeLater(new Runnable() {
                         public void run() {
                             try {
-
+                                dec.setActive(false);
                                 System.out.println("tie in event queue, trying to write to area2 ");
                                 area.insert(tie.getText(), tie.getOffset());
-
-
+                                dec.setActive(true);
                             } catch (Exception e) {
                                 System.err.println(e);
 				    /* We catch all exceptions, as an uncaught exception would make the
@@ -101,7 +100,9 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                     EventQueue.invokeLater(new Runnable() {
                         public void run() {
                             try {
+                                dec.setActive(false);
                                 area.replaceRange(null, tre.getOffset(), tre.getOffset()+tre.getLength());
+                                dec.setActive(true);
                             } catch (Exception e) {
                                 System.err.println(e);
 				    /* We catch all exceptions, as an uncaught exception would make the

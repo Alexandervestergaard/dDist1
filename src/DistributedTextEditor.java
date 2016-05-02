@@ -13,11 +13,7 @@ public class DistributedTextEditor extends JFrame {
 
     private JTextArea area1 = new JTextArea(10,120);
     private JTextArea area2 = new JTextArea(10,120);
-    //private JTextArea area1 = new JTextArea(20,120);
-    //private JTextArea area2 = new JTextArea(20,120);
-    //private JTextField ipaddress = new JTextField("IP address here");
-    private JTextField ipaddress = new JTextField("192.168.43.123");
-    //private JTextField portNumber = new JTextField("Port number here");
+    private JTextField ipaddress = new JTextField("192.168.87.102");
     private JTextField portNumber = new JTextField("40604");
 
     private EventReplayer er;
@@ -92,10 +88,6 @@ public class DistributedTextEditor extends JFrame {
         area1.insert("Example of how to capture stuff from the event queue and replay it in another buffer.\n" +
                 "Try to type and delete stuff in the top area.\n" +
                 "Then figure out how it works.\n", 0);
-
-        //er = new EventReplayer(dec, area2);
-        //ert = new Thread(er);
-        //ert.start();
     }
 
     private KeyListener k1 = new KeyAdapter() {
@@ -112,9 +104,9 @@ public class DistributedTextEditor extends JFrame {
     Action Listen = new AbstractAction("Listen") {
         public void actionPerformed(ActionEvent e) {
             saveOld();
-            area1.setText("");
+            //area1.setText("");
             // TODO: Become a server listening for connections on some port.
-            server = new ChatServer(dec, area2);
+            server = new ChatServer(dec, area1);
             serverThread = new Thread(server);
             serverThread.start();
             try {
@@ -139,10 +131,10 @@ public class DistributedTextEditor extends JFrame {
     Action Connect = new AbstractAction("Connect") {
         public void actionPerformed(ActionEvent e) {
             saveOld();
-            area1.setText("");
+            //area1.setText("");
             setTitle("Connecting to " + ipaddress.getText() + ":" + portNumber.getText() + "...");
 
-            client = new ChatClient(ipaddress.getText(), portNumber.getText(), dec, area2);
+            client = new ChatClient(ipaddress.getText(), portNumber.getText(), dec, area1);
             clientThread = new Thread(client);
             clientThread.start();
             try {

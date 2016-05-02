@@ -18,6 +18,8 @@ import javax.swing.text.DocumentFilter;
  */
 public class DocumentEventCapturer extends DocumentFilter {
 
+    private boolean active = true;
+
     /*
      * We are using a blocking queue for two reasons:
      * 1) They are thread safe, i.e., we can have two threads add and take elements
@@ -42,29 +44,34 @@ public class DocumentEventCapturer extends DocumentFilter {
     public void insertString(FilterBypass fb, int offset,
                              String str, AttributeSet a)
             throws BadLocationException {
-
-	/* Queue a copy of the event and then modify the textarea */
-        eventHistory.add(new TextInsertEvent(offset, str));
-        super.insertString(fb, offset, str, a);
+        if (active) {
+        /* Queue a copy of the event and then modify the textarea */
+            eventHistory.add(new TextInsertEvent(offset, str));
+        }
+            super.insertString(fb, offset, str, a);
     }
 
     public void remove(FilterBypass fb, int offset, int length)
             throws BadLocationException {
-	/* Queue a copy of the event and then modify the textarea */
-        eventHistory.add(new TextRemoveEvent(offset, length));
-        super.remove(fb, offset, length);
-    }
-
-    public void replace(FilterBypass fb, int offset,
-                        int length,
-                        String str, AttributeSet a)
-            throws BadLocationException {
-
-	/* Queue a copy of the event and then modify the text */
-        if (length > 0) {
+        if (active) {
+        /* Queue a copy of the event and then modify the textarea */
             eventHistory.add(new TextRemoveEvent(offset, length));
         }
-        eventHistory.add(new TextInsertEvent(offset, str));
-        super.replace(fb, offset, length, str, a);
+            super.remove(fb, offset, length);
+    }
+
+    public void replace(FilterBypass fb, int offset, int length, String str, AttributeSet a) throws BadLocationException {
+        if (active) {
+            /* Queue a copy of the event and then modify the text */
+            if (length > 0) {
+                eventHistory.add(new TextRemoveEvent(offset, length));
+            }
+            eventHistory.add(new TextInsertEvent(offset, str));
+        }
+            super.replace(fb, offset, length, str, a);
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 }

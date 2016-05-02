@@ -16,7 +16,7 @@ public class DistributedTextEditor extends JFrame {
     //private JTextArea area1 = new JTextArea(20,120);
     //private JTextArea area2 = new JTextArea(20,120);
     //private JTextField ipaddress = new JTextField("IP address here");
-    private JTextField ipaddress = new JTextField("192.168.43.123");
+    private JTextField ipaddress = new JTextField("10.192.13.228");
     //private JTextField portNumber = new JTextField("Port number here");
     private JTextField portNumber = new JTextField("40604");
 
@@ -112,9 +112,9 @@ public class DistributedTextEditor extends JFrame {
     Action Listen = new AbstractAction("Listen") {
         public void actionPerformed(ActionEvent e) {
             saveOld();
-            area1.setText("");
+            //area1.setText("");
             // TODO: Become a server listening for connections on some port.
-            server = new ChatServer(dec, area2);
+            server = new ChatServer(dec, area1);
             serverThread = new Thread(server);
             serverThread.start();
             try {
@@ -139,10 +139,10 @@ public class DistributedTextEditor extends JFrame {
     Action Connect = new AbstractAction("Connect") {
         public void actionPerformed(ActionEvent e) {
             saveOld();
-            area1.setText("");
+            //area1.setText("");
             setTitle("Connecting to " + ipaddress.getText() + ":" + portNumber.getText() + "...");
 
-            client = new ChatClient(ipaddress.getText(), portNumber.getText(), dec, area2);
+            client = new ChatClient(ipaddress.getText(), portNumber.getText(), dec, area1);
             clientThread = new Thread(client);
             clientThread.start();
             try {

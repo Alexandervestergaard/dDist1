@@ -9,6 +9,7 @@ import java.io.*;
 import java.net.Socket;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  *
@@ -29,6 +30,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
     private PriorityBlockingQueue<MyTextEvent> eventHistory;
     private Thread EventQueThread = new Thread();
     private OutputEventReplayer oer;
+    private ReentrantLock lock = new ReentrantLock();
 
     public InputEventReplayer(DocumentEventCapturer dec, JTextArea area, Socket socket, OutputEventReplayer oer) {
         this.dec = dec;
@@ -105,19 +107,22 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                     EventQueue.invokeLater(new Runnable() {
                         public void run() {
                             try {
-                                dec.setActive(false);
-                                area.replaceRange(null, tre.getOffset(), tre.getOffset()+tre.getLength());
-                                dec.setActive(true);
-                            } catch (Exception e) {
-                                System.err.println(e);
-				    /* We catch all exceptions, as an uncaught exception would make the
-				     * EDT unwind, which is now healthy.
-				     */
+                                if ((tre.getOffset() - (tre.getOffset() + tre.getLength())) >= 0) {
+                                    dec.setActive(false);
+                                    area.replaceRange(null, tre.getOffset(), tre.getOffset() + tre.getLength());
+                                    dec.setActive(true);
+                                }
+                            }
+                            catch (Exception e) {
+                                e.printStackTrace();
+                                /* We catch all exceptions, as an uncaught exception would make the
+				                 * EDT unwind, which is not healthy.
+				                 */
                             }
                         }
                     });
                 }
-            } catch (Exception _) {
+            } catch (Exception e) {
                 wasInterrupted = true;
             }
         }
@@ -127,7 +132,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
     public void waitForOneSecond() {
         try {
             Thread.sleep(1000);
-        } catch(InterruptedException _) {
+        } catch(InterruptedException e) {
         }
     }
 }

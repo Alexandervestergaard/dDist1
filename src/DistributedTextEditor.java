@@ -109,7 +109,7 @@ public class DistributedTextEditor extends JFrame {
     Action Listen = new AbstractAction("Listen") {
         public void actionPerformed(ActionEvent e) {
             saveOld();
-            //area1.setText("");
+            area1.setText("");
             // TODO: Become a server listening for connections on some port.
             server = new ChatServer(dec, area1);
             serverThread = new Thread(server);
@@ -141,7 +141,7 @@ public class DistributedTextEditor extends JFrame {
     Action Connect = new AbstractAction("Connect") {
         public void actionPerformed(ActionEvent e) {
             saveOld();
-            //area1.setText("");
+            area1.setText("");
             setTitle("Connecting to " + ipaddress.getText() + ":" + portNumber.getText() + "...");
 
             client = new ChatClient(ipaddress.getText(), portNumber.getText(), dec, area1);

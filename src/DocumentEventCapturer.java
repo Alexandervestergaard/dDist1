@@ -73,7 +73,7 @@ public class DocumentEventCapturer extends DocumentFilter {
             eventHistory.add(new TextInsertEvent(offset, str, timeStamp));
             timeStamp++;
         }
-            super.replace(fb, offset, length, str, a);
+        super.replace(fb, offset, length, str, a);
     }
 
     public void setActive(boolean active) {

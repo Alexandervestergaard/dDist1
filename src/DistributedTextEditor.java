@@ -1,5 +1,7 @@
 
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
 import java.io.*;
 import javax.swing.*;
@@ -15,6 +17,7 @@ public class DistributedTextEditor extends JFrame {
     private JTextArea area2 = new JTextArea(10,120);
     private JTextField ipaddress = new JTextField("192.168.87.102");
     private JTextField portNumber = new JTextField("40604");
+    private String localhostAddress = "";
 
     private EventReplayer er;
     private Thread ert;
@@ -74,8 +77,10 @@ public class DistributedTextEditor extends JFrame {
 
         edit.add(Copy);
         edit.add(Paste);
+        edit.add(CopyIP);
         edit.getItem(0).setText("Copy");
         edit.getItem(1).setText("Paste");
+        edit.getItem(2).setText("CopyIP");
 
         Save.setEnabled(false);
         SaveAs.setEnabled(false);
@@ -115,9 +120,14 @@ public class DistributedTextEditor extends JFrame {
                 Thread.currentThread().interrupt();
             }
             System.out.println("Server running");
-            String localhostAddress = server.localhostAddress;
+            localhostAddress = server.localhostAddress;
             System.out.println("localhost address: " + localhostAddress);
             setTitle("I'm listening on " + localhostAddress);
+            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+            clipboard.setContents(new StringSelection(localhostAddress), new StringSelection(localhostAddress));
+            area1.setText("");
+            area1.setText("IP address copied to clip-board");
+
 
             changed = true;
             Save.setEnabled(true);
@@ -200,6 +210,14 @@ public class DistributedTextEditor extends JFrame {
 
     Action Copy = m.get(DefaultEditorKit.copyAction);
     Action Paste = m.get(DefaultEditorKit.pasteAction);
+    Action CopyIP = new AbstractAction("CopyIP") {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+            clipboard.setContents(new StringSelection(localhostAddress), new StringSelection(localhostAddress));
+        }
+    };
+
 
     private void saveFileAs() {
         if(dialog.showSaveDialog(null)==JFileChooser.APPROVE_OPTION)

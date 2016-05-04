@@ -18,6 +18,7 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
     private DocumentEventCapturer dec;
     private Socket socket;
     private ObjectOutputStream oos;
+    private MyTextEvent lastEvent;
 
 
     /*
@@ -38,6 +39,10 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
         }
     }
 
+    public void setLastEvent(MyTextEvent mte){
+        lastEvent = mte;
+    }
+
     /*
     Denne tråd vil løbende sende de MyTextEvent-objekter som dec'en registrerer, ud på streamen
      */
@@ -47,7 +52,7 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
         while (!wasInterrupted) {
             try {
                 MyTextEvent mte = (MyTextEvent) dec.take();
-                if (mte != null) {
+                if (mte != null && !mte.equals(lastEvent)) {
                     System.out.println("oos write to stream: " + mte.toString());
                     oos.writeObject(mte);
                 }

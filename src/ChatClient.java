@@ -111,7 +111,7 @@ public class ChatClient implements Runnable {
             iepThread.interrupt();
         }
         OutputEventReplayer oep = new OutputEventReplayer(clientDec, socket);
-        InputEventReplayer iep = new InputEventReplayer(clientDec, clientArea2, socket);
+        InputEventReplayer iep = new InputEventReplayer(clientDec, clientArea2, socket, oep);
         oepThread = new Thread(oep);
         iepThread = new Thread(iep);
         oepThread.start();

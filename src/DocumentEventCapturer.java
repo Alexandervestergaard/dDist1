@@ -19,6 +19,7 @@ import javax.swing.text.DocumentFilter;
 public class DocumentEventCapturer extends DocumentFilter {
 
     private boolean active = true;
+    private int timeStamp = 0;
 
     /*
      * We are using a blocking queue for two reasons:
@@ -46,7 +47,8 @@ public class DocumentEventCapturer extends DocumentFilter {
             throws BadLocationException {
         if (active) {
         /* Queue a copy of the event and then modify the textarea */
-            eventHistory.add(new TextInsertEvent(offset, str));
+            eventHistory.add(new TextInsertEvent(offset, str, timeStamp));
+            timeStamp++;
         }
             super.insertString(fb, offset, str, a);
     }
@@ -55,7 +57,8 @@ public class DocumentEventCapturer extends DocumentFilter {
             throws BadLocationException {
         if (active) {
         /* Queue a copy of the event and then modify the textarea */
-            eventHistory.add(new TextRemoveEvent(offset, length));
+            eventHistory.add(new TextRemoveEvent(offset, length, timeStamp));
+            timeStamp++;
         }
             super.remove(fb, offset, length);
     }
@@ -64,9 +67,11 @@ public class DocumentEventCapturer extends DocumentFilter {
         if (active) {
             /* Queue a copy of the event and then modify the text */
             if (length > 0) {
-                eventHistory.add(new TextRemoveEvent(offset, length));
+                eventHistory.add(new TextRemoveEvent(offset, length, timeStamp));
+                timeStamp++;
             }
-            eventHistory.add(new TextInsertEvent(offset, str));
+            eventHistory.add(new TextInsertEvent(offset, str, timeStamp));
+            timeStamp++;
         }
             super.replace(fb, offset, length, str, a);
     }

@@ -8,6 +8,7 @@ import java.awt.*;
 import java.io.*;
 import java.net.Socket;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.PriorityBlockingQueue;
 
 /**
  *
@@ -24,14 +25,17 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
     private JTextArea area;
     public Socket socket;
     private ObjectInputStream ois;
-    private LinkedBlockingQueue<MyTextEvent> eventHistory;
+    //private LinkedBlockingQueue<MyTextEvent> eventHistory;
+    private PriorityBlockingQueue<MyTextEvent> eventHistory;
     private Thread EventQueThread = new Thread();
+    private OutputEventReplayer oer;
 
-    public InputEventReplayer(DocumentEventCapturer dec, JTextArea area, Socket socket) {
+    public InputEventReplayer(DocumentEventCapturer dec, JTextArea area, Socket socket, OutputEventReplayer oer) {
         this.dec = dec;
         this.area = area;
         this.socket = socket;
-        eventHistory = new LinkedBlockingQueue<MyTextEvent>();
+        eventHistory = new PriorityBlockingQueue<MyTextEvent>();
+        this.oer = oer;
         startEventQueThread();
         System.out.println("Inputstream created and event queing thread started");
     }
@@ -53,6 +57,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                         while ((mte = (MyTextEvent) ois.readObject()) != null){
                             System.out.println("mte being added to event queue: " + mte);
                             eventHistory.add(mte);
+                            oer.setLastEvent(mte);
                             mte = null;
                         }
                     } catch (EOFException e){
@@ -83,8 +88,8 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                     EventQueue.invokeLater(new Runnable() {
                         public void run() {
                             try {
-                                dec.setActive(false);
                                 System.out.println("tie in event queue, trying to write to area2 ");
+                                dec.setActive(false);
                                 area.insert(tie.getText(), tie.getOffset());
                                 dec.setActive(true);
                             } catch (Exception e) {

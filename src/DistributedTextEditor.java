@@ -97,6 +97,7 @@ public class DistributedTextEditor extends JFrame {
 
     private KeyListener k1 = new KeyAdapter() {
         public void keyPressed(KeyEvent e) {
+            dec.keyStroke(true);
             changed = true;
             Save.setEnabled(true);
             SaveAs.setEnabled(true);
@@ -109,7 +110,7 @@ public class DistributedTextEditor extends JFrame {
     Action Listen = new AbstractAction("Listen") {
         public void actionPerformed(ActionEvent e) {
             saveOld();
-            //area1.setText("");
+            area1.setText("");
             // TODO: Become a server listening for connections on some port.
             server = new ChatServer(dec, area1);
             serverThread = new Thread(server);
@@ -125,8 +126,6 @@ public class DistributedTextEditor extends JFrame {
             setTitle("I'm listening on " + localhostAddress);
             Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
             clipboard.setContents(new StringSelection(localhostAddress), new StringSelection(localhostAddress));
-            area1.setText("");
-            area1.setText("IP address copied to clip-board");
 
 
             changed = true;
@@ -141,7 +140,7 @@ public class DistributedTextEditor extends JFrame {
     Action Connect = new AbstractAction("Connect") {
         public void actionPerformed(ActionEvent e) {
             saveOld();
-            //area1.setText("");
+            area1.setText("");
             setTitle("Connecting to " + ipaddress.getText() + ":" + portNumber.getText() + "...");
 
             client = new ChatClient(ipaddress.getText(), portNumber.getText(), dec, area1);

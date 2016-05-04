@@ -3,6 +3,8 @@
  */
 
 import javax.swing.*;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.DocumentFilter;
 import javax.swing.tree.ExpandVetoException;
 import java.awt.*;
 import java.io.*;
@@ -56,7 +58,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                         MyTextEvent mte = null;
                         while ((mte = (MyTextEvent) ois.readObject()) != null){
                             System.out.println("mte being added to event queue: " + mte);
-                            dec.setTimeStamp(Math.max( mte.getTimeStamp(), dec.getTimeStamp()) + 1);
+                            dec.setTimeStamp(Math.max(mte.getTimeStamp(), dec.getTimeStamp()) + 1);
                             eventHistory.add(mte);
                             mte = null;
                         }
@@ -82,16 +84,17 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                 /*
                 MyTextEvent-objekter hives ud af eventHistory, meget lig EventReplayer
                  */
-                MyTextEvent mte = eventHistory.take();
+                MyTextEvent mte = null;
+                if(!dec.getKeystroke()) {
+                    mte = eventHistory.take();
+                }
                 if (mte instanceof TextInsertEvent) {
                     final TextInsertEvent tie = (TextInsertEvent)mte;
                     EventQueue.invokeLater(new Runnable() {
                         public void run() {
                             try {
                                 System.out.println("tie in event queue, trying to write to area2 ");
-                                dec.setActive(false);
                                 area.insert(tie.getText(), tie.getOffset());
-                                dec.setActive(true);
                             } catch (Exception e) {
                                 System.err.println(e);
 				    /* We catch all exceptions, as an uncaught exception would make the

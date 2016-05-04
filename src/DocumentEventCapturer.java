@@ -1,7 +1,10 @@
 /**
  * Created by Alexander on 16-04-2016.
  */
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.LinkedBlockingQueue;
+import javax.management.Attribute;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
@@ -31,6 +34,7 @@ public class DocumentEventCapturer extends DocumentFilter {
      *    we want, as we then don't need to keep asking until there are new elements.
      */
     protected LinkedBlockingQueue<MyTextEvent> eventHistory = new LinkedBlockingQueue<MyTextEvent>();
+    private boolean keyStroke = false;
 
     /**
      * If the queue is empty, then the call will block until an element arrives.
@@ -45,26 +49,27 @@ public class DocumentEventCapturer extends DocumentFilter {
     public void insertString(FilterBypass fb, int offset,
                              String str, AttributeSet a)
             throws BadLocationException {
-        if (active) {
-        /* Queue a copy of the event and then modify the textarea */
+        if (keyStroke){
             eventHistory.add(new TextInsertEvent(offset, str, timeStamp));
             timeStamp++;
         }
             super.insertString(fb, offset, str, a);
+            keyStroke = false;
     }
 
     public void remove(FilterBypass fb, int offset, int length)
             throws BadLocationException {
-        if (active) {
+        if (keyStroke) {
         /* Queue a copy of the event and then modify the textarea */
             eventHistory.add(new TextRemoveEvent(offset, length, timeStamp));
             timeStamp++;
         }
             super.remove(fb, offset, length);
+            keyStroke = false;
     }
 
     public void replace(FilterBypass fb, int offset, int length, String str, AttributeSet a) throws BadLocationException {
-        if (active) {
+        if (keyStroke) {
             /* Queue a copy of the event and then modify the text */
             if (length > 0) {
                 eventHistory.add(new TextRemoveEvent(offset, length, timeStamp));
@@ -73,7 +78,8 @@ public class DocumentEventCapturer extends DocumentFilter {
             eventHistory.add(new TextInsertEvent(offset, str, timeStamp));
             timeStamp++;
         }
-            super.replace(fb, offset, length, str, a);
+        super.replace(fb, offset, length, str, a);
+        keyStroke = false;
     }
 
     public void setActive(boolean active) {
@@ -86,5 +92,13 @@ public class DocumentEventCapturer extends DocumentFilter {
 
     public void setTimeStamp(int timeStamp) {
         this.timeStamp = timeStamp;
+    }
+
+    public void keyStroke(boolean keyStroke) {
+        this.keyStroke = keyStroke;
+    }
+
+    public boolean getKeystroke() {
+        return keyStroke;
     }
 }

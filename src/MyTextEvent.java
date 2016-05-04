@@ -28,4 +28,8 @@ public class MyTextEvent implements Serializable, Comparable<MyTextEvent> {
     public int getTimeStamp() {
         return timeStamp;
     }
+
+    public void setTimeStamp(int timeStamp) {
+        this.timeStamp = timeStamp;
+    }
 }

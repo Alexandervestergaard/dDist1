@@ -56,8 +56,8 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                         MyTextEvent mte = null;
                         while ((mte = (MyTextEvent) ois.readObject()) != null){
                             System.out.println("mte being added to event queue: " + mte);
+                            dec.setTimeStamp(Math.max( mte.getTimeStamp(), dec.getTimeStamp()) + 1);
                             eventHistory.add(mte);
-                            oer.setLastEvent(mte);
                             mte = null;
                         }
                     } catch (EOFException e){

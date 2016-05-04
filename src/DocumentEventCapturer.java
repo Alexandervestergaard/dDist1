@@ -79,4 +79,12 @@ public class DocumentEventCapturer extends DocumentFilter {
     public void setActive(boolean active) {
         this.active = active;
     }
+
+    public int getTimeStamp() {
+        return timeStamp;
+    }
+
+    public void setTimeStamp(int timeStamp) {
+        this.timeStamp = timeStamp;
+    }
 }

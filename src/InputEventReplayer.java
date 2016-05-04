@@ -24,7 +24,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
 
     private DocumentEventCapturer dec;
     private JTextArea area;
-    public Socket socket;
+    private Socket socket;
     private ObjectInputStream ois;
     //private LinkedBlockingQueue<MyTextEvent> eventHistory;
     private PriorityBlockingQueue<MyTextEvent> eventHistory;
@@ -55,7 +55,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                 while (true) {
                     try {
                         ois = new ObjectInputStream(socket.getInputStream());
-                        MyTextEvent mte = null;
+                        MyTextEvent mte;
                         while ((mte = (MyTextEvent) ois.readObject()) != null){
                             System.out.println("mte being added to event queue: " + mte);
                             dec.setTimeStamp(Math.max( mte.getTimeStamp(), dec.getTimeStamp()) + 1);
@@ -84,7 +84,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                 /*
                 MyTextEvent-objekter hives ud af eventHistory, meget lig EventReplayer
                  */
-                MyTextEvent mte = eventHistory.take();
+                final MyTextEvent mte = eventHistory.take();
                 if (mte instanceof TextInsertEvent) {
                     final TextInsertEvent tie = (TextInsertEvent)mte;
                     EventQueue.invokeLater(new Runnable() {
@@ -107,10 +107,13 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                     EventQueue.invokeLater(new Runnable() {
                         public void run() {
                             try {
-                                if ((tre.getOffset() - (tre.getOffset() + tre.getLength())) >= 0) {
+                                if (tre.getOffset() >= 0 && (tre.getOffset()+tre.getLength()) <= area.getText().length()) {
                                     dec.setActive(false);
                                     area.replaceRange(null, tre.getOffset(), tre.getOffset() + tre.getLength());
                                     dec.setActive(true);
+                                }
+                                else {
+                                    area.setText("");
                                 }
                             }
                             catch (Exception e) {
@@ -127,12 +130,5 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             }
         }
         System.out.println("I'm the thread running the EventReplayer, now I die!");
-    }
-
-    public void waitForOneSecond() {
-        try {
-            Thread.sleep(1000);
-        } catch(InterruptedException e) {
-        }
     }
 }

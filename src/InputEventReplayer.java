@@ -7,6 +7,7 @@ import javafx.collections.transformation.SortedList;
 import javax.swing.*;
 import javax.swing.tree.ExpandVetoException;
 import javax.swing.undo.UndoManager;
+import javax.xml.soap.Text;
 import java.awt.*;
 import java.io.*;
 import java.net.Socket;
@@ -68,17 +69,20 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                     try {
                         ois = new ObjectInputStream(socket.getInputStream());
                         MyTextEvent mte;
+                        dec.setTimeStamp(0);
+                        eventList.clear();
                         while ((mte = (MyTextEvent) ois.readObject()) != null){
                             System.out.println("mte being added to event queue: " + mte);
                             if (mte.getTimeStamp() >= dec.getTimeStamp()){
-                                dec.setTimeStamp(mte.getTimeStamp() + 1);
+                                dec.setTimeStamp(mte.getTimeStamp()+1);
                                 eventHistory.add(mte);
+                                eventList.add(mte);
                                 mte = null;
                             }
                             else {
                                 System.out.println("Found a smaller timestamp");
                                 eventList.add(mte);
-                                rollback(mte);
+                                rollback(mte.getTimeStamp());
                             }
                         }
                     } catch (EOFException e){
@@ -96,22 +100,35 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         EventQueThread.start();
     }
 
-    private void rollback(MyTextEvent mte) {
+    private void rollback(int rollbackTo) {
         rollBackLock.lock();
         try {
             //noinspection Since15
             eventList.sort(mteSorter);
             dec.setActive(false);
             oer.setEventListActive(false);
+
+            System.out.println("list:");
+            for (MyTextEvent q: eventList){
+                if (q instanceof TextInsertEvent) {
+                    System.out.print(((TextInsertEvent) q).getText() + ", ");
+                }
+                else {
+                    System.out.print("remove, ");
+                }
+            }
             for (MyTextEvent m : eventList){
-                if (mte.getTimeStamp() < m.getTimeStamp()){
+                if (m.getTimeStamp() >= rollbackTo){
                     undoEvent(m);
                 }
             }
-            doMTE(mte);
-            for (MyTextEvent m : eventList){
-                if (mte.getTimeStamp() < m.getTimeStamp()){
-                    doMTE(m);
+
+            for (MyTextEvent mte : eventList){
+                if (mte.getTimeStamp() >= rollbackTo) {
+                    if (mte instanceof TextInsertEvent) {
+                        System.out.println("printing event: " + mte.getTimeStamp() + ((TextInsertEvent) mte).getText());
+                        doMTE(mte);
+                    }
                 }
             }
             oer.setEventListActive(true);
@@ -128,11 +145,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             safelyRemoveRange(new TextRemoveEvent(m.getOffset(), m.getOffset() + ((TextInsertEvent) m).getText().length(), -1));
         }
         else if (m instanceof  TextRemoveEvent){
-            String tempString = "";
-            for (int i=0; i<((TextRemoveEvent) m).getLength(); i++){
-                tempString += " ";
-            }
-            doMTE(new TextInsertEvent(m.getOffset(), tempString, -1));
+            doMTE(new TextInsertEvent(m.getOffset(), ((TextRemoveEvent) m).getRemovedText(), -1));
         }
     }
 
@@ -183,17 +196,16 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         }
     }
 
-    private int safelyRemoveRange(TextRemoveEvent tre) {
+    private void safelyRemoveRange(TextRemoveEvent tre) {
         try {
             if (tre.getOffset() >= 0 && (tre.getOffset()+tre.getLength()) <= area.getText().length()) {
                 dec.setActive(false);
+                tre.setRemovedText(area.getText(tre.getOffset(), tre.getLength()));
                 area.replaceRange(null, tre.getOffset(), tre.getOffset() + tre.getLength());
                 dec.setActive(true);
-                return 0;
             }
             else {
                 area.setText("");
-                return ((tre.getOffset()+tre.getLength()) - area.getText().length());
             }
         }
         catch (Exception e) {
@@ -202,7 +214,6 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
              * EDT unwind, which is not healthy.
              */
         }
-        return 0;
     }
 
     public ArrayList<MyTextEvent> getEventList (){

@@ -11,6 +11,23 @@ public class TextInsertEvent extends MyTextEvent {
         super(offset, timeStamp);
         this.text = text;
     }
+
+    @Override
+    public int compareTo(MyTextEvent o) {
+        if (o instanceof TextInsertEvent){
+            if (super.getTimeStamp() == o.getTimeStamp()){
+                return this.getText().compareTo(((TextInsertEvent) o).getText());
+            }
+            if (super.getTimeStamp() > o.getTimeStamp()){
+                return 1;
+            }
+            if (super.getTimeStamp() < o.getTimeStamp()){
+                return -1;
+            }
+        }
+        return super.compareTo(o);
+    }
+
     public String getText() { return text; }
 }
 

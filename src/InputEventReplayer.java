@@ -94,6 +94,8 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                         public void run() {
                             try {
                                 System.out.println("tie in event queue, trying to write to area2 ");
+                                System.out.print(tie.getText());
+                                System.out.println("  " + tie.getTimeStamp());
                                 area.insert(tie.getText(), tie.getOffset());
                             } catch (Exception e) {
                                 System.err.println(e);
@@ -116,6 +118,17 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
 				    /* We catch all exceptions, as an uncaught exception would make the
 				     * EDT unwind, which is now healthy.
 				     */
+                            }
+                        }
+                    });
+                } else if (mte instanceof TextReplaceEverythingEvent){
+                    final TextReplaceEverythingEvent tree = (TextReplaceEverythingEvent) mte;
+                    EventQueue.invokeLater(new Runnable() {
+                        public void run() {
+                            try {
+                                area.replaceRange(tree.getText(), 0, area.getText().length());
+                            } catch (Exception e){
+                                System.err.println(e);
                             }
                         }
                     });

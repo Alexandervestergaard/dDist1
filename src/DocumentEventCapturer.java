@@ -23,6 +23,8 @@ public class DocumentEventCapturer extends DocumentFilter {
 
     private boolean active = true;
     private int timeStamp = 0;
+    private Timer timer;
+    private TimerTask timerTask;
 
     /*
      * We are using a blocking queue for two reasons:
@@ -35,6 +37,21 @@ public class DocumentEventCapturer extends DocumentFilter {
      */
     protected LinkedBlockingQueue<MyTextEvent> eventHistory = new LinkedBlockingQueue<MyTextEvent>();
     private boolean keyStroke = false;
+    private boolean timerToSendEverything = false;
+
+    public DocumentEventCapturer(){
+        timer = new Timer();
+        timerTask = new sendEverythingRegularlyTask();
+        timer.schedule(timerTask,1000,1000);
+    }
+
+    class sendEverythingRegularlyTask extends TimerTask{
+        @Override
+        public void run() {
+            timerToSendEverything = true;
+        }
+    }
+
 
     /**
      * If the queue is empty, then the call will block until an element arrives.
@@ -69,14 +86,26 @@ public class DocumentEventCapturer extends DocumentFilter {
     }
 
     public void replace(FilterBypass fb, int offset, int length, String str, AttributeSet a) throws BadLocationException {
+        int docLength = fb.getDocument().getLength();
+        String entireString = "";
         if (keyStroke) {
-            /* Queue a copy of the event and then modify the text */
-            if (length > 0) {
-                eventHistory.add(new TextRemoveEvent(offset, length, timeStamp));
+            if (timerToSendEverything) {
+                timerToSendEverything = false;
+                entireString = fb.getDocument().getText(0, docLength);
+                entireString = new StringBuilder(entireString).insert(offset,str).toString();
+                eventHistory.add(new TextReplaceEverythingEvent(entireString, timeStamp));
                 timeStamp++;
             }
+            /* Queue a copy of the event and then modify the text */
+            else {
+                if (length > 0) {
+                    eventHistory.add(new TextRemoveEvent(offset, length, timeStamp));
+                    timeStamp++;
+                }
+
             eventHistory.add(new TextInsertEvent(offset, str, timeStamp));
             timeStamp++;
+            }
         }
         super.replace(fb, offset, length, str, a);
         keyStroke = false;
@@ -101,4 +130,6 @@ public class DocumentEventCapturer extends DocumentFilter {
     public boolean getKeystroke() {
         return keyStroke;
     }
+
+
 }

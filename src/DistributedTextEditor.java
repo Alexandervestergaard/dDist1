@@ -125,7 +125,6 @@ public class DistributedTextEditor extends JFrame {
             setTitle("I'm listening on " + localhostAddress);
             Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
             clipboard.setContents(new StringSelection(localhostAddress), new StringSelection(localhostAddress));
-            area1.setText("");
             area1.setText("IP address copied to clip-board");
 
 

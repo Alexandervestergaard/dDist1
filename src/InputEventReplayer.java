@@ -2,11 +2,16 @@
  * Created by Alexander on 16-04-2016.
  */
 
+import javafx.collections.transformation.SortedList;
+
 import javax.swing.*;
 import javax.swing.tree.ExpandVetoException;
+import javax.swing.undo.UndoManager;
 import java.awt.*;
 import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.locks.ReentrantLock;
@@ -26,11 +31,12 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
     private JTextArea area;
     private Socket socket;
     private ObjectInputStream ois;
-    //private LinkedBlockingQueue<MyTextEvent> eventHistory;
     private PriorityBlockingQueue<MyTextEvent> eventHistory;
     private Thread EventQueThread = new Thread();
     private OutputEventReplayer oer;
-    private ReentrantLock lock = new ReentrantLock();
+    private ArrayList<MyTextEvent> eventList = new ArrayList<MyTextEvent>();
+    private ReentrantLock rollBackLock = new ReentrantLock();
+    private Comparator<? super MyTextEvent> mteSorter;
 
     public InputEventReplayer(DocumentEventCapturer dec, JTextArea area, Socket socket, OutputEventReplayer oer) {
         this.dec = dec;
@@ -39,6 +45,12 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         eventHistory = new PriorityBlockingQueue<MyTextEvent>();
         this.oer = oer;
         startEventQueThread();
+        mteSorter = new Comparator<MyTextEvent>() {
+            @Override
+            public int compare(MyTextEvent o1, MyTextEvent o2) {
+                return o1.compareTo(o2);
+            }
+        };
         System.out.println("Inputstream created and event queing thread started");
     }
 
@@ -58,9 +70,16 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                         MyTextEvent mte;
                         while ((mte = (MyTextEvent) ois.readObject()) != null){
                             System.out.println("mte being added to event queue: " + mte);
-                            dec.setTimeStamp(Math.max( mte.getTimeStamp(), dec.getTimeStamp()) + 1);
-                            eventHistory.add(mte);
-                            mte = null;
+                            if (mte.getTimeStamp() >= dec.getTimeStamp()){
+                                dec.setTimeStamp(mte.getTimeStamp() + 1);
+                                eventHistory.add(mte);
+                                mte = null;
+                            }
+                            else {
+                                System.out.println("Found a smaller timestamp");
+                                eventList.add(mte);
+                                rollback(mte);
+                            }
                         }
                     } catch (EOFException e){
 
@@ -77,6 +96,39 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         EventQueThread.start();
     }
 
+    private void rollback(MyTextEvent mte) {
+        rollBackLock.lock();
+        try {
+            //noinspection Since15
+            eventList.sort(mteSorter);
+            dec.setActive(false);
+            oer.setEventListActive(false);
+            for (MyTextEvent m : eventList){
+                if (mte.getTimeStamp() < m.getTimeStamp()){
+                    undoEvent(m);
+                }
+            }
+            doMTE(mte);
+            for (MyTextEvent m : eventList){
+                if (mte.getTimeStamp() < m.getTimeStamp()){
+                    doMTE(m);
+                }
+            }
+            oer.setEventListActive(true);
+            dec.setActive(true);
+        }
+        finally {
+            rollBackLock.unlock();
+        }
+    }
+
+    private void undoEvent(MyTextEvent m) {
+        System.out.println("Should undo: " + m.getTimeStamp());
+        if (m instanceof TextInsertEvent){
+            safelyRemoveRange(new TextRemoveEvent(m.getOffset(), m.getOffset() + ((TextInsertEvent) m).getText().length(), -1));
+        }
+    }
+
     public void run() {
         boolean wasInterrupted = false;
         while (!wasInterrupted) {
@@ -85,50 +137,63 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                 MyTextEvent-objekter hives ud af eventHistory, meget lig EventReplayer
                  */
                 final MyTextEvent mte = eventHistory.take();
-                if (mte instanceof TextInsertEvent) {
-                    final TextInsertEvent tie = (TextInsertEvent)mte;
-                    EventQueue.invokeLater(new Runnable() {
-                        public void run() {
-                            try {
-                                System.out.println("tie in event queue, trying to write to area2 ");
-                                dec.setActive(false);
-                                area.insert(tie.getText(), tie.getOffset());
-                                dec.setActive(true);
-                            } catch (Exception e) {
-                                System.err.println(e);
-				    /* We catch all exceptions, as an uncaught exception would make the
-				     * EDT unwind, which is now healthy.
-				     */
-                            }
-                        }
-                    });
-                } else if (mte instanceof TextRemoveEvent) {
-                    final TextRemoveEvent tre = (TextRemoveEvent)mte;
-                    EventQueue.invokeLater(new Runnable() {
-                        public void run() {
-                            try {
-                                if (tre.getOffset() >= 0 && (tre.getOffset()+tre.getLength()) <= area.getText().length()) {
-                                    dec.setActive(false);
-                                    area.replaceRange(null, tre.getOffset(), tre.getOffset() + tre.getLength());
-                                    dec.setActive(true);
-                                }
-                                else {
-                                    area.setText("");
-                                }
-                            }
-                            catch (Exception e) {
-                                e.printStackTrace();
-                                /* We catch all exceptions, as an uncaught exception would make the
-				                 * EDT unwind, which is not healthy.
-				                 */
-                            }
-                        }
-                    });
-                }
+                    //Writes the TextEvent to the area
+                    doMTE(mte);
             } catch (Exception e) {
                 wasInterrupted = true;
             }
         }
         System.out.println("I'm the thread running the EventReplayer, now I die!");
+    }
+
+    private void doMTE(MyTextEvent mte) {
+        if (mte instanceof TextInsertEvent) {
+            final TextInsertEvent tie = (TextInsertEvent)mte;
+            EventQueue.invokeLater(new Runnable() {
+                public void run() {
+                    try {
+                        System.out.println("tie in event queue, trying to write to area2 ");
+                        dec.setActive(false);
+                        area.insert(tie.getText(), tie.getOffset());
+                        dec.setActive(true);
+                    } catch (Exception e) {
+                        System.err.println(e);
+            /* We catch all exceptions, as an uncaught exception would make the
+             * EDT unwind, which is now healthy.
+             */
+                    }
+                }
+            });
+        } else if (mte instanceof TextRemoveEvent) {
+            final TextRemoveEvent tre = (TextRemoveEvent)mte;
+            EventQueue.invokeLater(new Runnable() {
+                public void run() {
+                    safelyRemoveRange(tre);
+                }
+            });
+        }
+    }
+
+    private void safelyRemoveRange(TextRemoveEvent tre) {
+        try {
+            if (tre.getOffset() >= 0 && (tre.getOffset()+tre.getLength()) <= area.getText().length()) {
+                dec.setActive(false);
+                area.replaceRange(null, tre.getOffset(), tre.getOffset() + tre.getLength());
+                dec.setActive(true);
+            }
+            else {
+                area.setText("");
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            /* We catch all exceptions, as an uncaught exception would make the
+             * EDT unwind, which is not healthy.
+             */
+        }
+    }
+
+    public ArrayList<MyTextEvent> getEventList (){
+        return eventList;
     }
 }

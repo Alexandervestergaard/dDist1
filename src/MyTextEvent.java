@@ -17,11 +17,14 @@ public class MyTextEvent implements Serializable, Comparable<MyTextEvent> {
 
     @Override
     public int compareTo(MyTextEvent o) {
-        if (o.getTimeStamp() > this.timeStamp) {
-            return -1;
+        if (o.getTimeStamp() < this.timeStamp) {
+            return 1;
+        }
+        else if (o.getTimeStamp() == this.timeStamp) {
+            return 0;
         }
         else{
-            return 1;
+            return -1;
         }
     }
 

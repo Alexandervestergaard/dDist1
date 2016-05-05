@@ -19,16 +19,18 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
     private Socket socket;
     private ObjectOutputStream oos;
     private MyTextEvent lastEvent;
-
+    private InputEventReplayer iep;
+    private boolean eventListActive = true;
 
     /*
     Konstruktøren sørger for at oprette en OjectOutputStream på socket'en.
     Denne bruges til at sende MyTextEvent-objekter, hentet fra den originale DocumentEventCapturer, ud
     på streamen.
      */
-    public OutputEventReplayer(DocumentEventCapturer dec, Socket socket) {
+    public OutputEventReplayer(DocumentEventCapturer dec, Socket socket, InputEventReplayer iep) {
         this.dec = dec;
         this.socket = socket;
+        this.iep = iep;
         try {
             System.out.println("Outputeventreplayer about to create outputstream");
             oos = new ObjectOutputStream(this.socket.getOutputStream());
@@ -55,9 +57,12 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
                 if (mte != null && !mte.equals(lastEvent)) {
                     System.out.println("oos write to stream: " + mte.toString());
                     oos.writeObject(mte);
+                    if (eventListActive) {
+                        iep.getEventList().add(mte);
+                    }
                 }
 
-            } catch (Exception _) {
+            } catch (Exception e) {
                 wasInterrupted = true;
             }
         }
@@ -67,7 +72,15 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
     public void waitForOneSecond() {
         try {
             Thread.sleep(1000);
-        } catch(InterruptedException _) {
+        } catch(InterruptedException e) {
         }
+    }
+
+    public void setIep(InputEventReplayer iep) {
+        this.iep = iep;
+    }
+
+    public void setEventListActive (boolean active){
+        this.eventListActive = active;
     }
 }

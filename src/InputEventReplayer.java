@@ -127,6 +127,13 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         if (m instanceof TextInsertEvent){
             safelyRemoveRange(new TextRemoveEvent(m.getOffset(), m.getOffset() + ((TextInsertEvent) m).getText().length(), -1));
         }
+        else if (m instanceof  TextRemoveEvent){
+            String tempString = "";
+            for (int i=0; i<((TextRemoveEvent) m).getLength(); i++){
+                tempString += " ";
+            }
+            doMTE(new TextInsertEvent(m.getOffset(), tempString, -1));
+        }
     }
 
     public void run() {
@@ -154,7 +161,9 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                     try {
                         System.out.println("tie in event queue, trying to write to area2 ");
                         dec.setActive(false);
-                        area.insert(tie.getText(), tie.getOffset());
+                        if (tie.getOffset() <= area.getText().length()) {
+                            area.insert(tie.getText(), tie.getOffset());
+                        }
                         dec.setActive(true);
                     } catch (Exception e) {
                         System.err.println(e);
@@ -174,15 +183,17 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         }
     }
 
-    private void safelyRemoveRange(TextRemoveEvent tre) {
+    private int safelyRemoveRange(TextRemoveEvent tre) {
         try {
             if (tre.getOffset() >= 0 && (tre.getOffset()+tre.getLength()) <= area.getText().length()) {
                 dec.setActive(false);
                 area.replaceRange(null, tre.getOffset(), tre.getOffset() + tre.getLength());
                 dec.setActive(true);
+                return 0;
             }
             else {
                 area.setText("");
+                return ((tre.getOffset()+tre.getLength()) - area.getText().length());
             }
         }
         catch (Exception e) {
@@ -191,6 +202,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
              * EDT unwind, which is not healthy.
              */
         }
+        return 0;
     }
 
     public ArrayList<MyTextEvent> getEventList (){

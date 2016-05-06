@@ -71,19 +71,11 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                         MyTextEvent mte;
                         dec.setTimeStamp(0);
                         eventList.clear();
+                        eventHistory.clear();
                         while ((mte = (MyTextEvent) ois.readObject()) != null){
                             System.out.println("mte being added to event queue: " + mte);
-                            if (mte.getTimeStamp() >= dec.getTimeStamp()){
-                                dec.setTimeStamp(mte.getTimeStamp()+1);
                                 eventHistory.add(mte);
-                                eventList.add(mte);
                                 mte = null;
-                            }
-                            else {
-                                System.out.println("Found a smaller timestamp");
-                                eventList.add(mte);
-                                rollback(mte.getTimeStamp());
-                            }
                         }
                     } catch (EOFException e){
 
@@ -100,7 +92,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         EventQueThread.start();
     }
 
-    private void rollback(int rollbackTo) {
+    private void rollback(int rollbackTo, MyTextEvent rollMte) {
         rollBackLock.lock();
         try {
             //noinspection Since15
@@ -110,6 +102,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
 
             System.out.println("list:");
             for (MyTextEvent q: eventList){
+                System.out.println("test loop");
                 if (q instanceof TextInsertEvent) {
                     System.out.print(((TextInsertEvent) q).getText() + ", ");
                 }
@@ -118,17 +111,24 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                 }
             }
             for (MyTextEvent m : eventList){
-                if (m.getTimeStamp() >= rollbackTo){
+                if (m.getTimeStamp() > rollbackTo){
+                    System.out.println("undoing");
                     undoEvent(m);
                 }
             }
 
+            eventList.add(rollMte);
+
             for (MyTextEvent mte : eventList){
-                if (mte.getTimeStamp() >= rollbackTo) {
-                    if (mte instanceof TextInsertEvent) {
-                        System.out.println("printing event: " + mte.getTimeStamp() + ((TextInsertEvent) mte).getText());
-                        doMTE(mte);
-                    }
+                System.out.println("test redoloop");
+                if (mte.getTimeStamp() > rollbackTo) {
+                if (mte instanceof TextInsertEvent) {
+                    System.out.println("printing event: " + mte.getTimeStamp() + ((TextInsertEvent) mte).getText());
+                }
+                else {
+                    System.out.println("printing event: "+ mte.getTimeStamp() + "remove");
+                }
+                    doMTE(mte);
                 }
             }
             oer.setEventListActive(true);
@@ -145,7 +145,9 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             safelyRemoveRange(new TextRemoveEvent(m.getOffset(), m.getOffset() + ((TextInsertEvent) m).getText().length(), -1));
         }
         else if (m instanceof  TextRemoveEvent){
-            doMTE(new TextInsertEvent(m.getOffset(), ((TextRemoveEvent) m).getRemovedText(), -1));
+            if (m.getOffset() >= 0 && (m.getOffset()+((TextRemoveEvent) m).getLength()) <= area.getText().length()) {
+                area.replaceRange(null, m.getOffset(), m.getOffset() + ((TextRemoveEvent) m).getLength());
+            }
         }
     }
 
@@ -157,9 +159,19 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                 MyTextEvent-objekter hives ud af eventHistory, meget lig EventReplayer
                  */
                 final MyTextEvent mte = eventHistory.take();
-                    //Writes the TextEvent to the area
+                eventList.add(mte);
+                System.out.println("test");
+                if (mte.getTimeStamp() >= dec.getTimeStamp()) {
+                    System.out.println("impossible time");
+                    dec.setTimeStamp(mte.getTimeStamp() + 1);
                     doMTE(mte);
+                }
+            else {
+                    System.out.println("everything is fine");
+                    rollback(mte.getTimeStamp(), mte);
+                }
             } catch (Exception e) {
+                e.printStackTrace();
                 wasInterrupted = true;
             }
         }
@@ -174,6 +186,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                     try {
                         System.out.println("tie in event queue, trying to write to area2 ");
                         dec.setActive(false);
+                        System.out.println(tie.getOffset() <= area.getText().length());
                         if (tie.getOffset() <= area.getText().length()) {
                             area.insert(tie.getText(), tie.getOffset());
                         }

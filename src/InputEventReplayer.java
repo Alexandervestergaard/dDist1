@@ -12,6 +12,8 @@ import java.awt.*;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -69,13 +71,10 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                     try {
                         ois = new ObjectInputStream(socket.getInputStream());
                         MyTextEvent mte;
-                        dec.setTimeStamp(0);
-                        eventList.clear();
-                        eventHistory.clear();
                         while ((mte = (MyTextEvent) ois.readObject()) != null){
                             System.out.println("mte being added to event queue: " + mte);
-                                eventHistory.add(mte);
-                                mte = null;
+                            eventHistory.add(mte);
+                            mte = null;
                         }
                     } catch (EOFException e){
 
@@ -92,47 +91,37 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         EventQueThread.start();
     }
 
-    private void rollback(int rollbackTo, MyTextEvent rollMte) {
+    private void rollback(int rollbackTo) {
         rollBackLock.lock();
         try {
-            //noinspection Since15
-            eventList.sort(mteSorter);
             dec.setActive(false);
             oer.setEventListActive(false);
 
+            //noinspection Since15
+            eventList.sort(mteSorter);
             System.out.println("list:");
             for (MyTextEvent q: eventList){
                 System.out.println("test loop");
                 if (q instanceof TextInsertEvent) {
                     System.out.print(((TextInsertEvent) q).getText() + ", ");
                 }
-                else {
-                    System.out.print("remove, ");
+                else if (q instanceof TextRemoveEvent){
+                    System.out.print("remove, " + ((TextRemoveEvent) q).getLength());
                 }
             }
+            Collections.reverse(eventList);
+            for (MyTextEvent undo : eventList){
+                undoEvent(undo);
+            }
+            Collections.reverse(eventList);
             for (MyTextEvent m : eventList){
-                if (m.getTimeStamp() > rollbackTo){
-                    System.out.println("undoing");
-                    undoEvent(m);
-                }
-            }
-
-            eventList.add(rollMte);
-
-            for (MyTextEvent mte : eventList){
-                System.out.println("test redoloop");
-                if (mte.getTimeStamp() > rollbackTo) {
-                if (mte instanceof TextInsertEvent) {
-                    System.out.println("printing event: " + mte.getTimeStamp() + ((TextInsertEvent) mte).getText());
-                }
-                else {
-                    System.out.println("printing event: "+ mte.getTimeStamp() + "remove");
-                }
-                    doMTE(mte);
-                }
+                doMTE(m);
             }
             oer.setEventListActive(true);
             dec.setActive(true);
+        }
+        catch (Exception e){
+            e.printStackTrace();
         }
         finally {
             rollBackLock.unlock();
@@ -160,15 +149,15 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                  */
                 final MyTextEvent mte = eventHistory.take();
                 eventList.add(mte);
-                System.out.println("test");
                 if (mte.getTimeStamp() >= dec.getTimeStamp()) {
                     System.out.println("impossible time");
                     dec.setTimeStamp(mte.getTimeStamp() + 1);
-                    doMTE(mte);
+                    //doMTE(mte);
+                    rollback(mte.getTimeStamp());
                 }
             else {
                     System.out.println("everything is fine");
-                    rollback(mte.getTimeStamp(), mte);
+                    rollback(mte.getTimeStamp());
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -193,6 +182,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                         dec.setActive(true);
                     } catch (Exception e) {
                         System.err.println(e);
+                        e.printStackTrace();
             /* We catch all exceptions, as an uncaught exception would make the
              * EDT unwind, which is now healthy.
              */

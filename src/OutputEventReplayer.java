@@ -58,6 +58,7 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
                 }
 
             } catch (Exception e) {
+                e.printStackTrace();
                 wasInterrupted = true;
             }
         }

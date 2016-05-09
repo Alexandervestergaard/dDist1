@@ -103,7 +103,6 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             eventList.sort(mteSorter);
             System.out.println("list:");
             for (MyTextEvent q: eventList){
-                System.out.println("test loop");
                 if (q instanceof TextInsertEvent) {
                     System.out.print(((TextInsertEvent) q).getText() + ", ");
                 }
@@ -111,14 +110,16 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                     System.out.print("remove, " + ((TextRemoveEvent) q).getLength());
                 }
             }
+            System.out.println();
             Collections.reverse(eventList);
             for (MyTextEvent undo : eventList) {
-                if (undo.getTimeStamp() >= rollbackTo) {
+                //if (undo.getTimeStamp() >= rollbackTo) {
                     undoEvent(undo);
                     tempList.add(undo);
-                }
+                //}
             }
 
+            System.out.println("Adding to eventlist from inputreplayer");
             eventList.add(rollMTE);
             //noinspection Since15
             Collections.reverse(eventList);
@@ -145,12 +146,12 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                 safelyRemoveRange(new TextRemoveEvent(m.getOffset(), m.getOffset() + ((TextInsertEvent) m).getText().length(), -1));
             }
             else {
-                safelyRemoveRange(new TextRemoveEvent(m.getOffset(), m.getOffset(), -1));
+                //safelyRemoveRange(new TextRemoveEvent(m.getOffset(), m.getOffset(), -1));
             }
         }
         else if (m instanceof  TextRemoveEvent){
             if (m.getOffset() >= 0 && (m.getOffset()+((TextRemoveEvent) m).getLength()) <= area.getText().length()) {
-                area.replaceRange(null, m.getOffset(), m.getOffset() + ((TextRemoveEvent) m).getLength());
+                area.insert(((TextRemoveEvent) m).getRemovedText(), m.getOffset());
             }
         }
     }

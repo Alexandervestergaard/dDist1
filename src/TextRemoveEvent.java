@@ -16,6 +16,6 @@ public class TextRemoveEvent extends MyTextEvent {
     }
 
     public void setRemovedText(String removedText) {
-        this.removedText = removedText;
+            this.removedText = removedText;
     }
 }

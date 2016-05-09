@@ -49,9 +49,10 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
         while (!wasInterrupted) {
             try {
                 MyTextEvent mte = (MyTextEvent) dec.take();
-                if (mte != null) {
+                if (mte != null && eventListActive) {
                     System.out.println("oos write to stream: " + mte.toString());
                     oos.writeObject(mte);
+                    System.out.println("Adding to eventlist from outputreplayer");
                     iep.getEventList().add(mte);
                 }
 

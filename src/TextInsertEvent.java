@@ -16,7 +16,9 @@ public class TextInsertEvent extends MyTextEvent {
     public int compareTo(MyTextEvent o) {
         if (o instanceof TextInsertEvent){
             if (super.getTimeStamp() == o.getTimeStamp()){
-                return this.getText().compareTo(((TextInsertEvent) o).getText());
+                if (this.getText() != null && ((TextInsertEvent) o).getText() != null) {
+                    return this.getText().compareTo(((TextInsertEvent) o).getText());
+                }
             }
             if (super.getTimeStamp() > o.getTimeStamp()){
                 return 1;

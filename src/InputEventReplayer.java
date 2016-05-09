@@ -91,12 +91,13 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         EventQueThread.start();
     }
 
-    private void rollback(int rollbackTo) {
+    private void rollback(int rollbackTo, MyTextEvent rollMTE) {
         rollBackLock.lock();
         try {
             dec.setActive(false);
             oer.setEventListActive(false);
             ArrayList<MyTextEvent> tempList = new ArrayList<MyTextEvent>();
+            tempList.add(rollMTE);
 
             //noinspection Since15
             eventList.sort(mteSorter);
@@ -111,13 +112,18 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                 }
             }
             Collections.reverse(eventList);
-            for (MyTextEvent undo : eventList){
+            for (MyTextEvent undo : eventList) {
+                if (undo.getTimeStamp() >= rollbackTo) {
                     undoEvent(undo);
                     tempList.add(undo);
+                }
             }
+
+            eventList.add(rollMTE);
             //noinspection Since15
             Collections.reverse(eventList);
-            Collections.reverse(tempList);
+            //noinspection Since15
+            tempList.sort(mteSorter);
             for (MyTextEvent m : tempList){
                     doMTE(m);
             }
@@ -157,16 +163,16 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                 MyTextEvent-objekter hives ud af eventHistory, meget lig EventReplayer
                  */
                 final MyTextEvent mte = eventHistory.take();
-                eventList.add(mte);
-                dec.setTimeStamp(mte.getTimeStamp() + 1);
                 if (mte.getTimeStamp() >= dec.getTimeStamp()) {
+                    dec.setTimeStamp(mte.getTimeStamp() + 1);
                     System.out.println("impossible time");
-                    //doMTE(mte);
-                    rollback(mte.getTimeStamp());
+                    /*doMTE(mte);
+                    eventList.add(mte);*/
+                    rollback(mte.getTimeStamp(), mte);
                 }
-            else {
+                else {
                     System.out.println("everything is fine");
-                    rollback(mte.getTimeStamp());
+                    rollback(mte.getTimeStamp(), mte);
                 }
             } catch (Exception e) {
                 e.printStackTrace();

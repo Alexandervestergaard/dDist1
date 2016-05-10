@@ -118,7 +118,6 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                     tempList.add(undo);
                 //}
             }
-
             System.out.println("Adding to eventlist from inputreplayer");
             eventList.add(rollMTE);
             //noinspection Since15
@@ -145,12 +144,9 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             if (((TextInsertEvent) m).getText() != null) {
                 safelyRemoveRange(new TextRemoveEvent(m.getOffset(), m.getOffset() + ((TextInsertEvent) m).getText().length(), -1));
             }
-            else {
-                //safelyRemoveRange(new TextRemoveEvent(m.getOffset(), m.getOffset(), -1));
-            }
         }
         else if (m instanceof  TextRemoveEvent){
-            if (m.getOffset() >= 0 && (m.getOffset()+((TextRemoveEvent) m).getLength()) <= area.getText().length()) {
+            if (m.getOffset() >= 0 && m.getOffset() <= area.getText().length()) {
                 area.insert(((TextRemoveEvent) m).getRemovedText(), m.getOffset());
             }
         }
@@ -167,9 +163,9 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                 if (mte.getTimeStamp() >= dec.getTimeStamp()) {
                     dec.setTimeStamp(mte.getTimeStamp() + 1);
                     System.out.println("impossible time");
-                    /*doMTE(mte);
-                    eventList.add(mte);*/
-                    rollback(mte.getTimeStamp(), mte);
+                    doMTE(mte);
+                    eventList.add(mte);
+                    //rollback(mte.getTimeStamp(), mte);
                 }
                 else {
                     System.out.println("everything is fine");
@@ -192,7 +188,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                         System.out.println("tie in event queue, trying to write to area2 ");
                         dec.setActive(false);
                         System.out.println(tie.getOffset() <= area.getText().length());
-                        if (tie.getOffset() <= area.getText().length()) {
+                        if (area.getText() == null || tie.getOffset() <= area.getText().length()) {
                             area.insert(tie.getText(), tie.getOffset());
                         }
                         dec.setActive(true);

@@ -40,6 +40,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
     private ArrayList<MyTextEvent> eventList = new ArrayList<MyTextEvent>();
     private ReentrantLock rollBackLock = new ReentrantLock();
     private Comparator<? super MyTextEvent> mteSorter;
+    private boolean eventHistoryActive = true;
 
     public InputEventReplayer(DocumentEventCapturer dec, JTextArea area, Socket socket, OutputEventReplayer oer) {
         this.dec = dec;
@@ -94,8 +95,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
     private void rollback(int rollbackTo, MyTextEvent rollMTE) {
         rollBackLock.lock();
         try {
-            dec.setActive(false);
-            oer.setEventListActive(false);
+            turnOff();
             ArrayList<MyTextEvent> tempList = new ArrayList<MyTextEvent>();
             tempList.add(rollMTE);
 
@@ -103,6 +103,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             eventList.sort(mteSorter);
             System.out.println("list:");
             for (MyTextEvent q: eventList){
+                System.out.println("loop size: " + eventList.size());
                 if (q instanceof TextInsertEvent) {
                     System.out.print(((TextInsertEvent) q).getText() + ", ");
                 }
@@ -124,11 +125,17 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             Collections.reverse(eventList);
             //noinspection Since15
             tempList.sort(mteSorter);
+            System.out.println("tempList: ");
             for (MyTextEvent m : tempList){
                     doMTE(m);
+                if (m instanceof TextInsertEvent) {
+                    System.out.print(((TextInsertEvent) m).getText() + ", ");
+                }
+                else if (m instanceof TextRemoveEvent){
+                    System.out.print("remove, " + ((TextRemoveEvent) m).getLength());
+                }
             }
-            oer.setEventListActive(true);
-            dec.setActive(true);
+            turnOn();
         }
         catch (Exception e){
             e.printStackTrace();
@@ -138,7 +145,14 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         }
     }
 
+    private void turnOff() {
+        dec.setActive(false);
+        oer.setEventListActive(false);
+        setEventHistoryActive(false);
+    }
+
     private void undoEvent(MyTextEvent m) {
+        turnOff();
         System.out.println("Should undo: " + m.getTimeStamp());
         if (m instanceof TextInsertEvent){
             if (((TextInsertEvent) m).getText() != null) {
@@ -150,6 +164,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                 area.insert(((TextRemoveEvent) m).getRemovedText(), m.getOffset());
             }
         }
+        turnOn();
     }
 
     public void run() {
@@ -159,17 +174,18 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                 /*
                 MyTextEvent-objekter hives ud af eventHistory, meget lig EventReplayer
                  */
-                final MyTextEvent mte = eventHistory.take();
-                if (mte.getTimeStamp() >= dec.getTimeStamp()) {
-                    dec.setTimeStamp(mte.getTimeStamp() + 1);
-                    System.out.println("impossible time");
-                    doMTE(mte);
-                    eventList.add(mte);
-                    //rollback(mte.getTimeStamp(), mte);
-                }
-                else {
-                    System.out.println("everything is fine");
-                    rollback(mte.getTimeStamp(), mte);
+                if (eventHistoryActive) {
+                    final MyTextEvent mte = eventHistory.take();
+                    if (mte.getTimeStamp() >= dec.getTimeStamp()) {
+                        dec.setTimeStamp(mte.getTimeStamp() + 1);
+                        System.out.println("impossible time");
+                        doMTE(mte);
+                        eventList.add(mte);
+                        //rollback(mte.getTimeStamp(), mte);
+                    } else {
+                        System.out.println("everything is fine");
+                        rollback(mte.getTimeStamp(), mte);
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -186,12 +202,12 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                 public void run() {
                     try {
                         System.out.println("tie in event queue, trying to write to area2 ");
-                        dec.setActive(false);
+                        turnOff();
                         System.out.println(tie.getOffset() <= area.getText().length());
                         if (area.getText() == null || tie.getOffset() <= area.getText().length()) {
                             area.insert(tie.getText(), tie.getOffset());
                         }
-                        dec.setActive(true);
+                        turnOn();
                     } catch (Exception e) {
                         System.err.println(e);
                         e.printStackTrace();
@@ -213,7 +229,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
 
     private void safelyRemoveRange(TextRemoveEvent tre) {
         try {
-            dec.setActive(false);
+            turnOff();
             if (tre.getOffset() >= 0 && (tre.getOffset()+tre.getLength()) <= area.getText().length()) {
                 tre.setRemovedText(area.getText(tre.getOffset(), tre.getLength()));
                 area.replaceRange(null, tre.getOffset(), tre.getOffset() + tre.getLength());
@@ -221,7 +237,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             else {
                 area.setText("");
             }
-            dec.setActive(true);
+            turnOn();
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -231,7 +247,17 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         }
     }
 
+    private void turnOn() {
+        setEventHistoryActive(true);
+        oer.setEventListActive(true);
+        dec.setActive(true);
+    }
+
     public ArrayList<MyTextEvent> getEventList (){
         return eventList;
+    }
+
+    private void setEventHistoryActive(boolean active){
+        this.eventHistoryActive = active;
     }
 }

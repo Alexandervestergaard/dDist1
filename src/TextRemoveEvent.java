@@ -15,6 +15,9 @@ public class TextRemoveEvent extends MyTextEvent {
         return removedText;
     }
 
+    /*
+     * En metode der sætter removedTekst variablen. Denne variable skal bruger hvis eventet skal fortrydes.
+     */
     public void setRemovedText(String removedText) {
             this.removedText = removedText;
     }

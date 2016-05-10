@@ -41,7 +41,8 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
     }
 
     /*
-    Denne tråd vil løbende sende de MyTextEvent-objekter som dec'en registrerer, ud på streamen
+     * Denne tråd vil løbende sende de MyTextEvent-objekter som dec'en registrerer, ud på streamen.
+     * Tilføjer også eventet til InputEventReplayerens log. Bliver påvirket af turnOn() of turnOff().
      */
     @Override
     public void run() {

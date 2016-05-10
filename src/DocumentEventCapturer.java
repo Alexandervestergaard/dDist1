@@ -42,6 +42,11 @@ public class DocumentEventCapturer extends DocumentFilter {
         return eventHistory.take();
     }
 
+    /*
+     * Denne klasse holder styr på timestamps. De bliver brugt til at lave rollback.
+     * Tilføjet en variable der holder styr på om den er tændt eller slukket. Hvis den er slukket
+     * skal den ikke tælle timstamp op eller tilføje events til køen.
+     */
     public void insertString(FilterBypass fb, int offset,
                              String str, AttributeSet a)
             throws BadLocationException {

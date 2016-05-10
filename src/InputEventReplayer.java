@@ -92,6 +92,49 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         EventQueThread.start();
     }
 
+    /*
+     * En tråd der tager MyTextEvents ud af eventHistrory, som er køen fra den anden client/server.
+     * Afhængig af eventets timestamp, køres eventet normalt og tilføjes til loggen eventList,
+     * eller også bliver rollback metoden kaldt med eventets timstamp og eventet selv.
+     */
+    public void run() {
+        boolean wasInterrupted = false;
+        while (!wasInterrupted) {
+            try {
+                /*
+                MyTextEvent-objekter hives ud af eventHistory, meget lig EventReplayer
+                 */
+                if (eventHistoryActive) {
+                    final MyTextEvent mte = eventHistory.take();
+                    if (mte.getTimeStamp() >= dec.getTimeStamp()) {
+                        dec.setTimeStamp(mte.getTimeStamp() + 1);
+                        System.out.println("impossible time");
+                        doMTE(mte);
+                        eventList.add(mte);
+                    } else {
+                        System.out.println("everything is fine");
+                        rollback(mte.getTimeStamp(), mte);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                wasInterrupted = true;
+            }
+        }
+        System.out.println("I'm the thread running the EventReplayer, now I die!");
+    }
+
+    /*
+     * En metoder der retter op på fejl når der kommer et TextEvent som skulle have været indsat før.
+     * turnOff() er en metode der midlertidigt slukker for de tråde der opfanger ændringer i tekstfeltet
+     * og tilføjer MyTextEvents tilkøen og loggen.
+     * tempList er en liste som kommer til at indeholde de MyTextEvents, som bliver fortrudt samt den nye event.
+     * Først sorteres loggen efter timestamp med mindste timestamp først. Derefter er der en løkke der printer
+     * indholdet af loggen for at se at client og server har samme log.
+     * Loggen bliver reversed for at få de sidst udførte events først så de kan blive fortrudt i rigtig rækkefølge.
+     * De events der har et timestamp >= det nye events timestamp bliver fortrudt og tilføjet til tempList.
+     * Denne liste bliver nu sorteret og elementerne bliver udført. Indholdet bliver også printet.
+     */
     private void rollback(int rollbackTo, MyTextEvent rollMTE) {
         rollBackLock.lock();
         try {
@@ -99,11 +142,9 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             ArrayList<MyTextEvent> tempList = new ArrayList<MyTextEvent>();
             tempList.add(rollMTE);
 
-            //noinspection Since15
-            eventList.sort(mteSorter);
+            // Loop der printer indholdet af loggen
             System.out.println("list:");
             for (MyTextEvent q: eventList){
-                System.out.println("loop size: " + eventList.size());
                 if (q instanceof TextInsertEvent) {
                     System.out.print(((TextInsertEvent) q).getText() + ", ");
                 }
@@ -111,20 +152,22 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                     System.out.print("remove, " + ((TextRemoveEvent) q).getLength());
                 }
             }
+
+            // Loop der fortryder events
             System.out.println();
             Collections.reverse(eventList);
             for (MyTextEvent undo : eventList) {
-                //if (undo.getTimeStamp() >= rollbackTo) {
+                if (undo.getTimeStamp() >= rollbackTo) {
                     undoEvent(undo);
                     tempList.add(undo);
-                //}
+                }
             }
-            System.out.println("Adding to eventlist from inputreplayer");
-            eventList.add(rollMTE);
-            //noinspection Since15
-            Collections.reverse(eventList);
-            //noinspection Since15
+            eventList.sort(mteSorter);
             tempList.sort(mteSorter);
+
+            eventList.add(rollMTE);
+
+            // Loope der printer og udfører indholdet af tempList
             System.out.println("tempList: ");
             for (MyTextEvent m : tempList){
                     doMTE(m);
@@ -145,12 +188,21 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         }
     }
 
+    /*
+     * En metode der slukker for de tråde der opfanger ændringer i tekstfeltet eller ændrer på loggen.
+     */
     private void turnOff() {
         dec.setActive(false);
         oer.setEventListActive(false);
         setEventHistoryActive(false);
     }
 
+    /*
+     * En metode der fortryder et event.
+     * Hvis eventet er et InsertEvent, bliver der slettet fra feltet på det aktuelle offset hentil længden.
+     * Hvis eventet er et RemoveEvent bliver den gamle tekst indsat på offsettet. Den gamle tekst bliver sat
+     * når RemoveEventet bliver udført.
+     */
     private void undoEvent(MyTextEvent m) {
         turnOff();
         System.out.println("Should undo: " + m.getTimeStamp());
@@ -167,34 +219,12 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         turnOn();
     }
 
-    public void run() {
-        boolean wasInterrupted = false;
-        while (!wasInterrupted) {
-            try {
-                /*
-                MyTextEvent-objekter hives ud af eventHistory, meget lig EventReplayer
-                 */
-                if (eventHistoryActive) {
-                    final MyTextEvent mte = eventHistory.take();
-                    if (mte.getTimeStamp() >= dec.getTimeStamp()) {
-                        dec.setTimeStamp(mte.getTimeStamp() + 1);
-                        System.out.println("impossible time");
-                        doMTE(mte);
-                        eventList.add(mte);
-                        //rollback(mte.getTimeStamp(), mte);
-                    } else {
-                        System.out.println("everything is fine");
-                        rollback(mte.getTimeStamp(), mte);
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                wasInterrupted = true;
-            }
-        }
-        System.out.println("I'm the thread running the EventReplayer, now I die!");
-    }
-
+    /*
+     * En metode der udfører et TextEvent.
+     * Hvis det er et InsertEvent, bliver det skrevet på tekstfeltet. Hvis der er gået noget galt og offset
+     * er større en tekstfeltets teksts længde, bliver det ikke indsat.
+     * Hvis det er et RemoveEvent bliver safelyRemoveRange kaldt.
+     */
     private void doMTE(MyTextEvent mte) {
         if (mte instanceof TextInsertEvent) {
             final TextInsertEvent tie = (TextInsertEvent)mte;
@@ -203,8 +233,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                     try {
                         System.out.println("tie in event queue, trying to write to area2 ");
                         turnOff();
-                        System.out.println(tie.getOffset() <= area.getText().length());
-                        if (area.getText() == null || tie.getOffset() <= area.getText().length()) {
+                        if (tie.getOffset() <= area.getText().length()) {
                             area.insert(tie.getText(), tie.getOffset());
                         }
                         turnOn();
@@ -227,15 +256,16 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         }
     }
 
+    /*
+     * En metode der udfører RemoveEvents.
+     * Hvis eventets offset eller længde ikke passer i dokumentet bliver der ikek slettet noget.
+     */
     private void safelyRemoveRange(TextRemoveEvent tre) {
         try {
             turnOff();
             if (tre.getOffset() >= 0 && (tre.getOffset()+tre.getLength()) <= area.getText().length()) {
                 tre.setRemovedText(area.getText(tre.getOffset(), tre.getLength()));
                 area.replaceRange(null, tre.getOffset(), tre.getOffset() + tre.getLength());
-            }
-            else {
-                area.setText("");
             }
             turnOn();
         }
@@ -247,6 +277,9 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         }
     }
 
+    /*
+     * Tænder for trådene der ændrer på loggen. Omvendt af turnOff.
+     */
     private void turnOn() {
         setEventHistoryActive(true);
         oer.setEventListActive(true);

@@ -15,7 +15,7 @@ public class DistributedTextEditor extends JFrame {
 
     private JTextArea area1 = new JTextArea(10,120);
     private JTextArea area2 = new JTextArea(10,120);
-    private JTextField ipaddress = new JTextField("10.192.39.11");
+    private JTextField ipaddress = new JTextField("192.168.87.102");
     private JTextField portNumber = new JTextField("40604");
     private String localhostAddress = "";
 

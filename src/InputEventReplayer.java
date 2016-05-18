@@ -28,6 +28,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author Jesper Buus Nielsen
  *
  */
+@SuppressWarnings("Since15")
 public class InputEventReplayer implements Runnable, ReplayerInterface {
 
     private DocumentEventCapturer dec;
@@ -111,6 +112,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                         System.out.println("impossible time");
                         doMTE(mte);
                         eventList.add(mte);
+                        rollback(mte.getTimeStamp(), mte);
                     } else {
                         System.out.println("everything is fine");
                         rollback(mte.getTimeStamp(), mte);
@@ -149,15 +151,17 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                     System.out.print(((TextInsertEvent) q).getText() + ", ");
                 }
                 else if (q instanceof TextRemoveEvent){
-                    System.out.print("remove, " + ((TextRemoveEvent) q).getLength());
+                    System.out.print("remove" + ((TextRemoveEvent) q).getLength() + ", ");
                 }
             }
+            System.out.println();
+            System.out.println("Log done.");
 
             // Loop der fortryder events
-            System.out.println();
             Collections.reverse(eventList);
             for (MyTextEvent undo : eventList) {
                 if (undo.getTimeStamp() >= rollbackTo) {
+                    //waitForOneSecond();
                     undoEvent(undo);
                     tempList.add(undo);
                 }
@@ -170,14 +174,17 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             // Loope der printer og udfører indholdet af tempList
             System.out.println("tempList: ");
             for (MyTextEvent m : tempList){
+                //waitForOneSecond();
                     doMTE(m);
                 if (m instanceof TextInsertEvent) {
                     System.out.print(((TextInsertEvent) m).getText() + ", ");
                 }
                 else if (m instanceof TextRemoveEvent){
-                    System.out.print("remove, " + ((TextRemoveEvent) m).getLength());
+                    System.out.print("remove" + ((TextRemoveEvent) m).getLength() + ", ");
                 }
             }
+            System.out.println("Temp done.");
+
             turnOn();
         }
         catch (Exception e){
@@ -208,7 +215,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         System.out.println("Should undo: " + m.getTimeStamp());
         if (m instanceof TextInsertEvent){
             if (((TextInsertEvent) m).getText() != null) {
-                safelyRemoveRange(new TextRemoveEvent(m.getOffset(), m.getOffset() + ((TextInsertEvent) m).getText().length(), -1));
+                safelyRemoveRange(new TextRemoveEvent(m.getOffset(), ((TextInsertEvent) m).getText().length(), -1));
             }
         }
         else if (m instanceof  TextRemoveEvent){
@@ -228,8 +235,6 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
     private void doMTE(MyTextEvent mte) {
         if (mte instanceof TextInsertEvent) {
             final TextInsertEvent tie = (TextInsertEvent)mte;
-            EventQueue.invokeLater(new Runnable() {
-                public void run() {
                     try {
                         System.out.println("tie in event queue, trying to write to area2 ");
                         turnOff();
@@ -240,19 +245,10 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                     } catch (Exception e) {
                         System.err.println(e);
                         e.printStackTrace();
-            /* We catch all exceptions, as an uncaught exception would make the
-             * EDT unwind, which is now healthy.
-             */
                     }
-                }
-            });
         } else if (mte instanceof TextRemoveEvent) {
             final TextRemoveEvent tre = (TextRemoveEvent)mte;
-            EventQueue.invokeLater(new Runnable() {
-                public void run() {
-                    safelyRemoveRange(tre);
-                }
-            });
+            safelyRemoveRange(tre);
         }
     }
 
@@ -284,6 +280,15 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         setEventHistoryActive(true);
         oer.setEventListActive(true);
         dec.setActive(true);
+    }
+
+    public void waitForOneSecond(){
+        try{
+            Thread.sleep(1000);
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     public ArrayList<MyTextEvent> getEventList (){

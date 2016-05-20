@@ -116,12 +116,15 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                         dec.setTimeStamp(mte.getTimeStamp() + 1);
                         System.out.println("impossible time");
                         doMTE(mte);
-                        eventList.add(mte);
+                        if (!eventList.contains(mte)) {
+                            eventList.add(mte);
+                        }
                     } else {
                         System.out.println("everything is fine");
                         rollback(mte.getTimeStamp(), mte);
                     }
                 }
+                System.out.println(eventList.toString());
             } catch (Exception e) {
                 e.printStackTrace();
                 wasInterrupted = true;
@@ -173,7 +176,9 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             eventList.sort(mteSorter);
             tempList.sort(mteSorter);
 
-            eventList.add(rollMTE);
+            if (!eventList.contains(rollMTE)) {
+                eventList.add(rollMTE);
+            }
 
             // Loope der printer og udfører indholdet af tempList
             System.out.println("tempList: ");
@@ -253,6 +258,13 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         } else if (mte instanceof TextRemoveEvent) {
             final TextRemoveEvent tre = (TextRemoveEvent)mte;
             safelyRemoveRange(tre);
+        }
+        else  if(mte instanceof UpToDateEvent){
+            eventList = ((UpToDateEvent) mte).getLog();
+            eventList.remove(mte);
+            MyTextEvent tempEvent = new TextInsertEvent(0, "", 0, sender);
+            rollback(0, tempEvent);
+            eventList.remove(tempEvent);
         }
     }
 

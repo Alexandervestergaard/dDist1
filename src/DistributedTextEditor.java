@@ -109,7 +109,6 @@ public class DistributedTextEditor extends JFrame {
             saveOld();
             //area1.setText("");
             // TODO: Become a server listening for connections on some port.
-            System.out.println("dexc is: " + dec);
             server = new ChatServer(dec, area1, id);
             serverThread = new Thread(server);
             serverThread.start();

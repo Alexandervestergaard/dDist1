@@ -14,11 +14,11 @@ public class ChatServer implements Runnable{
 
 
     private DocumentEventCapturer serverDec;
-    private JTextArea serverArea2;
+    private JTextArea serverArea;
 
-    public ChatServer(DocumentEventCapturer serverDec, JTextArea serverArea2, String sender) {
+    public ChatServer(DocumentEventCapturer serverDec, JTextArea serverArea, String sender) {
         this.serverDec = serverDec;
-        this.serverArea2 = serverArea2;
+        this.serverArea = serverArea;
         this.sender = sender;
         serverDec.setServer(this);
     }
@@ -124,7 +124,7 @@ public class ChatServer implements Runnable{
 
         while (true) {
             socket = waitForConnectionFromClient();
-            createIOStreams(socket, serverDec, serverArea2);
+            createIOStreams(socket, serverDec, serverArea);
 
 
             if (socket != null) {
@@ -144,14 +144,17 @@ public class ChatServer implements Runnable{
     /*
      * sets up Replayers and Threads to run them. The Replayers sends and reads textevents to communicate with the client.
      */
-    private void createIOStreams(Socket socket, DocumentEventCapturer serverDec, JTextArea serverArea2) {
+    private void createIOStreams(Socket socket, DocumentEventCapturer serverDec, JTextArea serverArea) {
         OutputEventReplayer oep = new OutputEventReplayer(serverDec, socket, null);
         oep.setIsFromServer(true);
         outputList.add(oep);
-
-        InputEventReplayer iep = new InputEventReplayer(serverDec, serverArea2, socket, oep, sender);
+        InputEventReplayer iep = new InputEventReplayer(serverDec, serverArea, socket, oep, sender);
         iep.setFromServer(true, outputList);
-
+        updateList.add(iep);
+        if (!updateList.isEmpty()) {
+            System.out.println("adding logevent");
+            oep.forcedQueueAdd(new UpToDateEvent(-1, -1, sender, updateList.get(0).getEventList()));
+        }
         //Sætter OutputEventReplayers InputEventReplayer så den kan tilføje elementer til loggen.
         oep.setIep(iep);
         oepThread = new Thread(oep);

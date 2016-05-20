@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.net.*;
 import java.io.*;
+import java.util.ArrayList;
 
 /**
  *
@@ -15,9 +16,11 @@ public class ChatServer implements Runnable{
     private DocumentEventCapturer serverDec;
     private JTextArea serverArea2;
 
-    public ChatServer(DocumentEventCapturer serverDec, JTextArea serverArea2) {
+    public ChatServer(DocumentEventCapturer serverDec, JTextArea serverArea2, String sender) {
         this.serverDec = serverDec;
         this.serverArea2 = serverArea2;
+        this.sender = sender;
+        serverDec.setServer(this);
     }
 
     /*
@@ -39,6 +42,10 @@ public class ChatServer implements Runnable{
     public BufferedReader fromClient;
     private Thread iepThread = new Thread();
     private Thread oepThread = new Thread();
+    private ArrayList<OutputEventReplayer> outputList = new ArrayList<OutputEventReplayer>();
+    private ArrayList<InputEventReplayer> updateList = new ArrayList<InputEventReplayer>();
+    private final String sender;
+
 
 
     /**
@@ -115,12 +122,9 @@ public class ChatServer implements Runnable{
 
         registerOnPort();
 
-        socket = waitForConnectionFromClient();
-
-        createIOStreams(socket, serverDec, serverArea2);
-
         while (true) {
             socket = waitForConnectionFromClient();
+            createIOStreams(socket, serverDec, serverArea2);
 
 
             if (socket != null) {
@@ -141,14 +145,13 @@ public class ChatServer implements Runnable{
      * sets up Replayers and Threads to run them. The Replayers sends and reads textevents to communicate with the client.
      */
     private void createIOStreams(Socket socket, DocumentEventCapturer serverDec, JTextArea serverArea2) {
-        if(oepThread.isAlive()) {
-            oepThread.interrupt();
-        }
-        if(iepThread.isAlive()) {
-            iepThread.interrupt();
-        }
         OutputEventReplayer oep = new OutputEventReplayer(serverDec, socket, null);
-        InputEventReplayer iep = new InputEventReplayer(serverDec, serverArea2, socket, oep);
+        oep.setIsFromServer(true);
+        outputList.add(oep);
+
+        InputEventReplayer iep = new InputEventReplayer(serverDec, serverArea2, socket, oep, "sender");
+        iep.setFromServer(true, outputList);
+
         //Sætter OutputEventReplayers InputEventReplayer så den kan tilføje elementer til loggen.
         oep.setIep(iep);
         oepThread = new Thread(oep);
@@ -160,6 +163,9 @@ public class ChatServer implements Runnable{
             Thread.currentThread().interrupt();
         }
         iepThread.start();
+        for (InputEventReplayer update : updateList){
+            update.setFromServer(true, outputList);
+        }
     }
 
     /*
@@ -169,5 +175,9 @@ public class ChatServer implements Runnable{
         deregisterOnPort();
         iepThread.interrupt();
         oepThread.interrupt();
+    }
+
+    public ArrayList<OutputEventReplayer> getOutputList(){
+        return outputList;
     }
 }

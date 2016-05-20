@@ -3,6 +3,7 @@ import java.awt.*;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.concurrent.PriorityBlockingQueue;
 
 /**
  *
@@ -20,6 +21,8 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
     private ObjectOutputStream oos;
     private InputEventReplayer iep;
     private boolean eventListActive = true;
+    private PriorityBlockingQueue<MyTextEvent> forcedQueue = new PriorityBlockingQueue<MyTextEvent>();
+    private boolean isFromServer = false;
 
     /*
     Konstruktøren sørger for at oprette en OjectOutputStream på socket'en.
@@ -49,7 +52,14 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
         boolean wasInterrupted = false;
         while (!wasInterrupted) {
             try {
-                MyTextEvent mte = (MyTextEvent) dec.take();
+                MyTextEvent mte;
+                if (isFromServer) {
+                     mte = (MyTextEvent) forcedQueue.take();
+                }
+                else {
+                    mte = (MyTextEvent) dec.take();
+                }
+
                 if ((mte != null) && eventListActive) {
                     System.out.println("oos write to stream: " + mte.toString());
                     oos.writeObject(mte);
@@ -78,5 +88,13 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
 
     public void setEventListActive (boolean active){
         this.eventListActive = active;
+    }
+
+    public void forcedQueueAdd(MyTextEvent mte){
+        forcedQueue.add(mte);
+    }
+
+    public void setIsFromServer(boolean isFromServer){
+        this.isFromServer = isFromServer;
     }
 }

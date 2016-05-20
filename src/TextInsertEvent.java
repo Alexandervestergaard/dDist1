@@ -7,8 +7,8 @@ public class TextInsertEvent extends MyTextEvent {
 
     private String text;
 
-    public TextInsertEvent(int offset, String text, int timeStamp) {
-        super(offset, timeStamp);
+    public TextInsertEvent(int offset, String text, int timeStamp, String sender) {
+        super(offset, timeStamp, sender);
         this.text = text;
     }
 
@@ -19,12 +19,6 @@ public class TextInsertEvent extends MyTextEvent {
                 if (this.getText() != null && ((TextInsertEvent) o).getText() != null) {
                     return this.getText().compareTo(((TextInsertEvent) o).getText());
                 }
-            }
-            if (super.getTimeStamp() > o.getTimeStamp()){
-                return 1;
-            }
-            if (super.getTimeStamp() < o.getTimeStamp()){
-                return -1;
             }
         }
         return super.compareTo(o);

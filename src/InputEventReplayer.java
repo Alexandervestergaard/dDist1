@@ -2,20 +2,12 @@
  * Created by Alexander on 16-04-2016.
  */
 
-import javafx.collections.transformation.SortedList;
-
 import javax.swing.*;
-import javax.swing.tree.ExpandVetoException;
-import javax.swing.undo.UndoManager;
-import javax.xml.soap.Text;
-import java.awt.*;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -42,11 +34,15 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
     private ReentrantLock rollBackLock = new ReentrantLock();
     private Comparator<? super MyTextEvent> mteSorter;
     private boolean eventHistoryActive = true;
+    private final String sender;
+    private boolean isFromServer = false;
+    private ArrayList<OutputEventReplayer> outputList;
 
-    public InputEventReplayer(DocumentEventCapturer dec, JTextArea area, Socket socket, OutputEventReplayer oer) {
+    public InputEventReplayer(DocumentEventCapturer dec, JTextArea area, Socket socket, OutputEventReplayer oer, String sender) {
         this.dec = dec;
         this.area = area;
         this.socket = socket;
+        this.sender = sender;
         eventHistory = new PriorityBlockingQueue<MyTextEvent>();
         this.oer = oer;
         startEventQueThread();
@@ -76,6 +72,11 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                         while ((mte = (MyTextEvent) ois.readObject()) != null){
                             System.out.println("mte being added to event queue: " + mte);
                             eventHistory.add(mte);
+                            if (isFromServer){
+                                for (OutputEventReplayer oer : outputList) {
+                                    oer.forcedQueueAdd(mte);
+                                }
+                            }
                             mte = null;
                         }
                     } catch (EOFException e){
@@ -112,7 +113,6 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                         System.out.println("impossible time");
                         doMTE(mte);
                         eventList.add(mte);
-                        rollback(mte.getTimeStamp(), mte);
                     } else {
                         System.out.println("everything is fine");
                         rollback(mte.getTimeStamp(), mte);
@@ -215,7 +215,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         System.out.println("Should undo: " + m.getTimeStamp());
         if (m instanceof TextInsertEvent){
             if (((TextInsertEvent) m).getText() != null) {
-                safelyRemoveRange(new TextRemoveEvent(m.getOffset(), ((TextInsertEvent) m).getText().length(), -1));
+                safelyRemoveRange(new TextRemoveEvent(m.getOffset(), ((TextInsertEvent) m).getText().length(), -1, "error"));
             }
         }
         else if (m instanceof  TextRemoveEvent){
@@ -233,6 +233,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
      * Hvis det er et RemoveEvent bliver safelyRemoveRange kaldt.
      */
     private void doMTE(MyTextEvent mte) {
+        if (mte.getSender() == this.sender){return;}
         if (mte instanceof TextInsertEvent) {
             final TextInsertEvent tie = (TextInsertEvent)mte;
                     try {
@@ -297,5 +298,10 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
 
     private void setEventHistoryActive(boolean active){
         this.eventHistoryActive = active;
+    }
+
+    public void setFromServer(boolean fromServer, ArrayList<OutputEventReplayer> list) {
+        isFromServer = fromServer;
+        outputList = list;
     }
 }

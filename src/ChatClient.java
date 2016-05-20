@@ -26,12 +26,14 @@ public class ChatClient implements Runnable {
     private JTextArea clientArea2;
     private String localhostAddress;
     protected Socket socket = null;
+    private final String sender;
 
-    public ChatClient(String serverName, String portNumber, DocumentEventCapturer clientDec, JTextArea clientArea2) {
+    public ChatClient(String serverName, String portNumber, DocumentEventCapturer clientDec, JTextArea clientArea2, String sender) {
         this.serverName = serverName;
         this.portNumber = Integer.parseInt(portNumber);
         this.clientDec = clientDec;
         this.clientArea2 = clientArea2;
+        this.sender = sender;
     }
 
     /**
@@ -111,7 +113,7 @@ public class ChatClient implements Runnable {
             iepThread.interrupt();
         }
         OutputEventReplayer oep = new OutputEventReplayer(clientDec, socket, null);
-        InputEventReplayer iep = new InputEventReplayer(clientDec, clientArea2, socket, oep);
+        InputEventReplayer iep = new InputEventReplayer(clientDec, clientArea2, socket, oep, "sender");
         //Sætter OutputEventReplayers InputEventReplayer så den kan tilføje elementer til loggen.
         oep.setIep(iep);
         oepThread = new Thread(oep);

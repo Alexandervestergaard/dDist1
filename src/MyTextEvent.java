@@ -8,10 +8,12 @@ import java.io.Serializable;
 public class MyTextEvent implements Serializable, Comparable<MyTextEvent> {
     private int offset;
     private int timeStamp;
+    private final String sender;
 
-    MyTextEvent(int offset, int timeStamp) {
+    MyTextEvent(int offset, int timeStamp, String sender) {
         this.offset = offset;
         this.timeStamp = timeStamp;
+        this.sender = sender;
     }
     int getOffset() { return offset; }
 
@@ -37,4 +39,7 @@ public class MyTextEvent implements Serializable, Comparable<MyTextEvent> {
     }
 
 
+    public String getSender() {
+        return sender;
+    }
 }

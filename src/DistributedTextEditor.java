@@ -6,10 +6,6 @@ import java.awt.event.*;
 import java.io.*;
 import javax.swing.*;
 import javax.swing.text.*;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.UnknownHostException;
 
 public class DistributedTextEditor extends JFrame {
 
@@ -28,7 +24,7 @@ public class DistributedTextEditor extends JFrame {
     private String currentFile = "Untitled";
     private boolean changed = false;
     private boolean connected = false;
-    private DocumentEventCapturer dec = new DocumentEventCapturer();
+    private DocumentEventCapturer dec = new DocumentEventCapturer(this.toString());
 
     private ChatClient client;
     private Thread clientThread;
@@ -111,7 +107,7 @@ public class DistributedTextEditor extends JFrame {
             saveOld();
             //area1.setText("");
             // TODO: Become a server listening for connections on some port.
-            server = new ChatServer(dec, area1);
+            server = new ChatServer(dec, area1, this.toString());
             serverThread = new Thread(server);
             serverThread.start();
             try {
@@ -143,7 +139,7 @@ public class DistributedTextEditor extends JFrame {
             //area1.setText("");
             setTitle("Connecting to " + ipaddress.getText() + ":" + portNumber.getText() + "...");
 
-            client = new ChatClient(ipaddress.getText(), portNumber.getText(), dec, area1);
+            client = new ChatClient(ipaddress.getText(), portNumber.getText(), dec, area1, this.toString());
             clientThread = new Thread(client);
             clientThread.start();
             try {

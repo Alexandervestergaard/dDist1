@@ -20,6 +20,9 @@ public class DocumentEventCapturer extends DocumentFilter {
 
     private boolean active = true;
     private int timeStamp = 0;
+    private ChatServer server;
+    private boolean isFromServer = false;
+    private final String sender;
 
     /*
      * We are using a blocking queue for two reasons:
@@ -31,6 +34,10 @@ public class DocumentEventCapturer extends DocumentFilter {
      *    we want, as we then don't need to keep asking until there are new elements.
      */
     protected LinkedBlockingQueue<MyTextEvent> eventHistory = new LinkedBlockingQueue<MyTextEvent>();
+
+    public DocumentEventCapturer(String sender) {
+        this.sender = sender;
+    }
 
     /**
      * If the queue is empty, then the call will block until an element arrives.
@@ -52,7 +59,14 @@ public class DocumentEventCapturer extends DocumentFilter {
             throws BadLocationException {
         if (active) {
         /* Queue a copy of the event and then modify the textarea */
-            eventHistory.add(new TextInsertEvent(offset, str, timeStamp));
+            if (isFromServer){
+                for (OutputEventReplayer oep : server.getOutputList()){
+                    oep.forcedQueueAdd(new TextInsertEvent(offset, str, timeStamp, sender));
+                }
+            }
+            else {
+                eventHistory.add(new TextInsertEvent(offset, str, timeStamp, sender));
+            }
             timeStamp++;
         }
             super.insertString(fb, offset, str, a);
@@ -62,7 +76,14 @@ public class DocumentEventCapturer extends DocumentFilter {
             throws BadLocationException {
         if (active) {
         /* Queue a copy of the event and then modify the textarea */
-            eventHistory.add(new TextRemoveEvent(offset, length, timeStamp));
+            if (isFromServer){
+                for (OutputEventReplayer oep : server.getOutputList()){
+                    oep.forcedQueueAdd(new TextRemoveEvent(offset, length, timeStamp, sender));
+                }
+            }
+            else {
+                eventHistory.add(new TextRemoveEvent(offset, length, timeStamp, sender));
+            }
             timeStamp++;
         }
             super.remove(fb, offset, length);
@@ -72,10 +93,24 @@ public class DocumentEventCapturer extends DocumentFilter {
         if (active) {
             /* Queue a copy of the event and then modify the text */
             if (length > 0) {
-                eventHistory.add(new TextRemoveEvent(offset, length, timeStamp));
+                if (isFromServer){
+                    for (OutputEventReplayer oep : server.getOutputList()){
+                        oep.forcedQueueAdd(new TextRemoveEvent(offset, length, timeStamp, sender));
+                    }
+                }
+                else {
+                    eventHistory.add(new TextRemoveEvent(offset, length, timeStamp, sender));
+                }
                 timeStamp++;
             }
-            eventHistory.add(new TextInsertEvent(offset, str, timeStamp));
+            if (isFromServer){
+                for (OutputEventReplayer oep : server.getOutputList()){
+                    oep.forcedQueueAdd(new TextInsertEvent(offset, str, timeStamp, sender));
+                }
+            }
+            else {
+                eventHistory.add(new TextInsertEvent(offset, str, timeStamp, sender));
+            }
             timeStamp++;
         }
         super.replace(fb, offset, length, str, a);
@@ -91,5 +126,10 @@ public class DocumentEventCapturer extends DocumentFilter {
 
     public void setTimeStamp(int timeStamp) {
         this.timeStamp = timeStamp;
+    }
+
+    public void setServer(ChatServer server) {
+        this.server = server;
+        isFromServer = true;
     }
 }

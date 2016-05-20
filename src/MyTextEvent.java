@@ -38,7 +38,6 @@ public class MyTextEvent implements Serializable, Comparable<MyTextEvent> {
         this.timeStamp = timeStamp;
     }
 
-
     public String getSender() {
         return sender;
     }

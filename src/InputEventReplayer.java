@@ -70,19 +70,22 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                         ois = new ObjectInputStream(socket.getInputStream());
                         MyTextEvent mte;
                         while ((mte = (MyTextEvent) ois.readObject()) != null){
-                            System.out.println("mte being added to event queue: " + mte);
-                            eventHistory.add(mte);
-                            if (isFromServer){
-                                for (OutputEventReplayer oer : outputList) {
-                                    oer.forcedQueueAdd(mte);
+                            System.out.println("my id: " + sender + " mte id: " + mte.getSender() + " says EventQueueThread and: " + (mte.getSender() != sender));
+                            if (!mte.getSender().equals(sender)) {
+                                System.out.println("mte being added to event queue: " + mte);
+                                eventHistory.add(mte);
+                                if (isFromServer) {
+                                    for (OutputEventReplayer oer : outputList) {
+                                        oer.forcedQueueAdd(mte);
+                                    }
                                 }
                             }
                             mte = null;
                         }
                     } catch (EOFException e){
-
+                        e.printStackTrace();
                     } catch (OptionalDataException e){
-
+                        e.printStackTrace();
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (ClassNotFoundException e) {
@@ -108,6 +111,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                  */
                 if (eventHistoryActive) {
                     final MyTextEvent mte = eventHistory.take();
+                    System.out.println("my id: " + sender + " mte id: " + mte.getSender());
                     if (mte.getTimeStamp() >= dec.getTimeStamp()) {
                         dec.setTimeStamp(mte.getTimeStamp() + 1);
                         System.out.println("impossible time");
@@ -233,7 +237,6 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
      * Hvis det er et RemoveEvent bliver safelyRemoveRange kaldt.
      */
     private void doMTE(MyTextEvent mte) {
-        if (mte.getSender() == this.sender){return;}
         if (mte instanceof TextInsertEvent) {
             final TextInsertEvent tie = (TextInsertEvent)mte;
                     try {

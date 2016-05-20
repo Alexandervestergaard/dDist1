@@ -23,16 +23,16 @@ public class ChatClient implements Runnable {
     private Thread iepThread = new Thread();
     private Thread oepThread = new Thread();
     private DocumentEventCapturer clientDec;
-    private JTextArea clientArea2;
+    private JTextArea clientArea;
     private String localhostAddress;
     protected Socket socket = null;
     private final String sender;
 
-    public ChatClient(String serverName, String portNumber, DocumentEventCapturer clientDec, JTextArea clientArea2, String sender) {
+    public ChatClient(String serverName, String portNumber, DocumentEventCapturer clientDec, JTextArea clientArea, String sender) {
         this.serverName = serverName;
         this.portNumber = Integer.parseInt(portNumber);
         this.clientDec = clientDec;
-        this.clientArea2 = clientArea2;
+        this.clientArea = clientArea;
         this.sender = sender;
     }
 
@@ -75,12 +75,10 @@ public class ChatClient implements Runnable {
 
         socket = connectToServer(serverName);
 
-        createIOStreams(socket, clientDec, clientArea2);
+        createIOStreams(socket, clientDec, clientArea);
 
         if (socket != null) {
             System.out.println("Connected to " + socket);
-
-
         }
 
         System.out.println("Goodbuy world!");
@@ -113,7 +111,7 @@ public class ChatClient implements Runnable {
             iepThread.interrupt();
         }
         OutputEventReplayer oep = new OutputEventReplayer(clientDec, socket, null);
-        InputEventReplayer iep = new InputEventReplayer(clientDec, clientArea2, socket, oep, "sender");
+        InputEventReplayer iep = new InputEventReplayer(clientDec, clientArea2, socket, oep, sender);
         //Sætter OutputEventReplayers InputEventReplayer så den kan tilføje elementer til loggen.
         oep.setIep(iep);
         oepThread = new Thread(oep);

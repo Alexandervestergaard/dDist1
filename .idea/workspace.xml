@@ -6,12 +6,9 @@
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ChatClient.java" afterPath="$PROJECT_DIR$/src/ChatClient.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ChatServer.java" afterPath="$PROJECT_DIR$/src/ChatServer.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/DistributedTextEditor.java" afterPath="$PROJECT_DIR$/src/DistributedTextEditor.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/DocumentEventCapturer.java" afterPath="$PROJECT_DIR$/src/DocumentEventCapturer.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/InputEventReplayer.java" afterPath="$PROJECT_DIR$/src/InputEventReplayer.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/MyTextEvent.java" afterPath="$PROJECT_DIR$/src/MyTextEvent.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/OutputEventReplayer.java" afterPath="$PROJECT_DIR$/src/OutputEventReplayer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/TextInsertEvent.java" afterPath="$PROJECT_DIR$/src/TextInsertEvent.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/TextRemoveEvent.java" afterPath="$PROJECT_DIR$/src/TextRemoveEvent.java" />
     </list>
     <ignored path="dDistAfl1.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -39,8 +36,8 @@
       <file leaf-file-name="InputEventReplayer.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/InputEventReplayer.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="515">
-              <caret line="256" column="42" selection-start-line="256" selection-start-column="42" selection-end-line="256" selection-end-column="42" />
+            <state relative-caret-position="306">
+              <caret line="73" column="33" selection-start-line="73" selection-start-column="33" selection-end-line="73" selection-end-column="33" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
                 <element signature="imports" expanded="true" />
@@ -52,11 +49,15 @@
       <file leaf-file-name="MyTextEvent.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/MyTextEvent.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="119">
-              <caret line="7" column="13" selection-start-line="7" selection-start-column="13" selection-end-line="7" selection-end-column="13" />
+            <state relative-caret-position="578">
+              <caret line="38" column="5" selection-start-line="38" selection-start-column="5" selection-end-line="38" selection-end-column="5" />
               <folding>
-                <element signature="e#901#902#0" expanded="true" />
-                <element signature="e#930#931#0" expanded="true" />
+                <element signature="e#746#747#0" expanded="false" />
+                <element signature="e#778#779#0" expanded="false" />
+                <element signature="e#825#826#0" expanded="false" />
+                <element signature="e#867#868#0" expanded="false" />
+                <element signature="e#900#901#0" expanded="false" />
+                <element signature="e#929#930#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -76,14 +77,8 @@
         <entry file="file://$PROJECT_DIR$/src/OutputEventReplayer.java">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="313">
-              <caret line="56" column="0" selection-start-line="56" selection-start-column="0" selection-end-line="56" selection-end-column="0" />
-              <folding>
-                <element signature="e#755#768#0" expanded="true" />
-                <element signature="e#3073#3074#0" expanded="true" />
-                <element signature="e#3109#3110#0" expanded="true" />
-                <element signature="e#3165#3166#0" expanded="true" />
-                <element signature="e#3213#3214#0" expanded="true" />
-              </folding>
+              <caret line="67" column="28" selection-start-line="67" selection-start-column="28" selection-end-line="67" selection-end-column="28" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -103,12 +98,9 @@
       <file leaf-file-name="DocumentEventCapturer.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/DocumentEventCapturer.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="391">
-              <caret line="71" column="15" selection-start-line="71" selection-start-column="15" selection-end-line="71" selection-end-column="15" />
-              <folding>
-                <element signature="e#1432#1433#0" expanded="true" />
-                <element signature="e#1468#1469#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="1161">
+              <caret line="82" column="13" selection-start-line="82" selection-start-column="13" selection-end-line="82" selection-end-column="13" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -116,8 +108,8 @@
       <file leaf-file-name="ChatClient.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/ChatClient.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="374">
-              <caret line="30" column="122" selection-start-line="30" selection-start-column="122" selection-end-line="30" selection-end-column="122" />
+            <state relative-caret-position="906">
+              <caret line="117" column="36" selection-start-line="117" selection-start-column="36" selection-end-line="117" selection-end-column="36" />
               <folding />
             </state>
           </provider>
@@ -126,14 +118,9 @@
       <file leaf-file-name="ChatServer.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/ChatServer.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="515">
-              <caret line="166" column="49" selection-start-line="166" selection-start-column="49" selection-end-line="166" selection-end-column="49" />
-              <folding>
-                <element signature="e#1627#1648#0" expanded="true" />
-                <element signature="e#1720#1740#0" expanded="true" />
-                <element signature="e#6079#6080#0" expanded="true" />
-                <element signature="e#6112#6113#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="294">
+              <caret line="151" column="101" selection-start-line="151" selection-start-column="101" selection-end-line="151" selection-end-column="101" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -141,8 +128,8 @@
       <file leaf-file-name="DistributedTextEditor.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/DistributedTextEditor.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="243">
-              <caret line="141" column="106" selection-start-line="141" selection-start-column="106" selection-end-line="141" selection-end-column="106" />
+            <state relative-caret-position="493">
+              <caret line="52" column="35" selection-start-line="52" selection-start-column="35" selection-end-line="52" selection-end-column="35" />
               <folding />
             </state>
           </provider>
@@ -182,14 +169,14 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/src/EventReplayer.java" />
-        <option value="$PROJECT_DIR$/src/OutputEventReplayer.java" />
-        <option value="$PROJECT_DIR$/src/DistributedTextEditor.java" />
-        <option value="$PROJECT_DIR$/src/ChatClient.java" />
-        <option value="$PROJECT_DIR$/src/MyTextEvent.java" />
         <option value="$PROJECT_DIR$/src/TextInsertEvent.java" />
         <option value="$PROJECT_DIR$/src/TextRemoveEvent.java" />
         <option value="$PROJECT_DIR$/src/DocumentEventCapturer.java" />
+        <option value="$PROJECT_DIR$/src/MyTextEvent.java" />
         <option value="$PROJECT_DIR$/src/ChatServer.java" />
+        <option value="$PROJECT_DIR$/src/ChatClient.java" />
+        <option value="$PROJECT_DIR$/src/DistributedTextEditor.java" />
+        <option value="$PROJECT_DIR$/src/OutputEventReplayer.java" />
         <option value="$PROJECT_DIR$/src/InputEventReplayer.java" />
       </list>
     </option>
@@ -253,8 +240,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scratches" />
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -290,6 +275,8 @@
         </subPane>
       </pane>
       <pane id="PackagesPane" />
+      <pane id="Scope" />
+      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -972,13 +959,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="e#755#768#0" expanded="true" />
-            <element signature="e#3073#3074#0" expanded="true" />
-            <element signature="e#3109#3110#0" expanded="true" />
-            <element signature="e#3165#3166#0" expanded="true" />
-            <element signature="e#3213#3214#0" expanded="true" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1018,13 +999,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="44" column="0" selection-start-line="44" selection-start-column="0" selection-end-line="44" selection-end-column="0" />
-          <folding>
-            <element signature="e#755#768#0" expanded="true" />
-            <element signature="e#3073#3074#0" expanded="true" />
-            <element signature="e#3109#3110#0" expanded="true" />
-            <element signature="e#3165#3166#0" expanded="true" />
-            <element signature="e#3213#3214#0" expanded="true" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1256,37 +1231,33 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/DistributedTextEditor.java">
+    <entry file="file://$PROJECT_DIR$/src/TextInsertEvent.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="243">
-          <caret line="141" column="106" selection-start-line="141" selection-start-column="106" selection-end-line="141" selection-end-column="106" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/ChatClient.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="374">
-          <caret line="30" column="122" selection-start-line="30" selection-start-column="122" selection-end-line="30" selection-end-column="122" />
+        <state relative-caret-position="204">
+          <caret line="12" column="5" selection-start-line="12" selection-start-column="5" selection-end-line="12" selection-end-column="5" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/MyTextEvent.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="119">
-          <caret line="7" column="13" selection-start-line="7" selection-start-column="13" selection-end-line="7" selection-end-column="13" />
+        <state relative-caret-position="578">
+          <caret line="38" column="5" selection-start-line="38" selection-start-column="5" selection-end-line="38" selection-end-column="5" />
           <folding>
-            <element signature="e#901#902#0" expanded="true" />
-            <element signature="e#930#931#0" expanded="true" />
+            <element signature="e#746#747#0" expanded="false" />
+            <element signature="e#778#779#0" expanded="false" />
+            <element signature="e#825#826#0" expanded="false" />
+            <element signature="e#867#868#0" expanded="false" />
+            <element signature="e#900#901#0" expanded="false" />
+            <element signature="e#929#930#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/TextInsertEvent.java">
+    <entry file="file://$PROJECT_DIR$/src/ChatServer.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="204">
-          <caret line="12" column="5" selection-start-line="12" selection-start-column="5" selection-end-line="12" selection-end-column="5" />
+        <state relative-caret-position="294">
+          <caret line="151" column="101" selection-start-line="151" selection-start-column="101" selection-end-line="151" selection-end-column="101" />
           <folding />
         </state>
       </provider>
@@ -1301,46 +1272,40 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/DocumentEventCapturer.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="391">
-          <caret line="71" column="15" selection-start-line="71" selection-start-column="15" selection-end-line="71" selection-end-column="15" />
-          <folding>
-            <element signature="e#1432#1433#0" expanded="true" />
-            <element signature="e#1468#1469#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="1161">
+          <caret line="82" column="13" selection-start-line="82" selection-start-column="13" selection-end-line="82" selection-end-column="13" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ChatClient.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="906">
+          <caret line="117" column="36" selection-start-line="117" selection-start-column="36" selection-end-line="117" selection-end-column="36" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/DistributedTextEditor.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="493">
+          <caret line="52" column="35" selection-start-line="52" selection-start-column="35" selection-end-line="52" selection-end-column="35" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/OutputEventReplayer.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="313">
-          <caret line="56" column="0" selection-start-line="56" selection-start-column="0" selection-end-line="56" selection-end-column="0" />
-          <folding>
-            <element signature="e#755#768#0" expanded="true" />
-            <element signature="e#3073#3074#0" expanded="true" />
-            <element signature="e#3109#3110#0" expanded="true" />
-            <element signature="e#3165#3166#0" expanded="true" />
-            <element signature="e#3213#3214#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/ChatServer.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="515">
-          <caret line="166" column="49" selection-start-line="166" selection-start-column="49" selection-end-line="166" selection-end-column="49" />
-          <folding>
-            <element signature="e#1627#1648#0" expanded="true" />
-            <element signature="e#1720#1740#0" expanded="true" />
-            <element signature="e#6079#6080#0" expanded="true" />
-            <element signature="e#6112#6113#0" expanded="true" />
-          </folding>
+          <caret line="67" column="28" selection-start-line="67" selection-start-column="28" selection-end-line="67" selection-end-column="28" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/InputEventReplayer.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="515">
-          <caret line="256" column="42" selection-start-line="256" selection-start-column="42" selection-end-line="256" selection-end-column="42" />
+        <state relative-caret-position="306">
+          <caret line="73" column="33" selection-start-line="73" selection-start-column="33" selection-end-line="73" selection-end-column="33" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
             <element signature="imports" expanded="true" />

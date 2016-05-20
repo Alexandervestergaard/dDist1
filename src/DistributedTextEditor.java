@@ -4,6 +4,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
 import java.io.*;
+import java.util.Random;
 import javax.swing.*;
 import javax.swing.text.*;
 
@@ -24,14 +25,18 @@ public class DistributedTextEditor extends JFrame {
     private String currentFile = "Untitled";
     private boolean changed = false;
     private boolean connected = false;
-    private DocumentEventCapturer dec = new DocumentEventCapturer(this.toString());
+    private DocumentEventCapturer dec;
 
     private ChatClient client;
     private Thread clientThread;
     private ChatServer server;
     private Thread serverThread;
+    private String id;
 
     public DistributedTextEditor() {
+        Random idGenerator = new Random();
+        id = String.valueOf(idGenerator.nextLong());
+        dec = new DocumentEventCapturer(id);
         area1.setFont(new Font("Monospaced",Font.PLAIN,12));
 
         area2.setFont(new Font("Monospaced",Font.PLAIN,12));
@@ -86,9 +91,6 @@ public class DistributedTextEditor extends JFrame {
         area1.addKeyListener(k1);
         setTitle("Disconnected");
         setVisible(true);
-        //area1.insert("Example of how to capture stuff from the event queue and replay it in another buffer.\n" +
-               // "Try to type and delete stuff in the top area.\n" +
-                //"Then figure out how it works.\n", 0);
     }
 
     private KeyListener k1 = new KeyAdapter() {
@@ -107,7 +109,8 @@ public class DistributedTextEditor extends JFrame {
             saveOld();
             //area1.setText("");
             // TODO: Become a server listening for connections on some port.
-            server = new ChatServer(dec, area1, this.toString());
+            System.out.println("dexc is: " + dec);
+            server = new ChatServer(dec, area1, id);
             serverThread = new Thread(server);
             serverThread.start();
             try {
@@ -136,10 +139,9 @@ public class DistributedTextEditor extends JFrame {
     Action Connect = new AbstractAction("Connect") {
         public void actionPerformed(ActionEvent e) {
             saveOld();
-            //area1.setText("");
             setTitle("Connecting to " + ipaddress.getText() + ":" + portNumber.getText() + "...");
 
-            client = new ChatClient(ipaddress.getText(), portNumber.getText(), dec, area1, this.toString());
+            client = new ChatClient(ipaddress.getText(), portNumber.getText(), dec, area1, id);
             clientThread = new Thread(client);
             clientThread.start();
             try {

@@ -149,7 +149,7 @@ public class ChatServer implements Runnable{
         oep.setIsFromServer(true);
         outputList.add(oep);
 
-        InputEventReplayer iep = new InputEventReplayer(serverDec, serverArea2, socket, oep, "sender");
+        InputEventReplayer iep = new InputEventReplayer(serverDec, serverArea2, socket, oep, sender);
         iep.setFromServer(true, outputList);
 
         //Sætter OutputEventReplayers InputEventReplayer så den kan tilføje elementer til loggen.

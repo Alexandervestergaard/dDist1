@@ -53,6 +53,10 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
         while (!wasInterrupted) {
             try {
                 MyTextEvent mte;
+                /*
+                 * Hvis denne OutputEventReplayer er lavt af en server skal den tage events fra forcedQueue. Ellers
+                 * skal den tage fra dec som den plejer.
+                 */
                 if (isFromServer) {
                      mte = (MyTextEvent) forcedQueue.take();
                 }

@@ -42,8 +42,11 @@ public class ChatServer implements Runnable{
     public BufferedReader fromClient;
     private Thread iepThread = new Thread();
     private Thread oepThread = new Thread();
+    //En liste over alle OutputEventReplayers
     private ArrayList<OutputEventReplayer> outputList = new ArrayList<OutputEventReplayer>();
+    //En liste over all InoutEventReplayers
     private ArrayList<InputEventReplayer> updateList = new ArrayList<InputEventReplayer>();
+    //Et ID sombliver givet fra teksteditoren
     private final String sender;
 
 
@@ -122,6 +125,10 @@ public class ChatServer implements Runnable{
 
         registerOnPort();
 
+        /*
+         * Venter på at en client forbinder sig og opretter streams. Efter en forbindelse er oprettet venter den på
+         * at der kommer flere.
+         */
         while (true) {
             socket = waitForConnectionFromClient();
             createIOStreams(socket, serverDec, serverArea);
@@ -142,19 +149,32 @@ public class ChatServer implements Runnable{
     }
 
     /*
-     * sets up Replayers and Threads to run them. The Replayers sends and reads textevents to communicate with the client.
+     * Sets up Replayers and Threads to run them. The Replayers sends and reads textevents to communicate with the client.
+     * Tilføjer også streams til listerne.
      */
     private void createIOStreams(Socket socket, DocumentEventCapturer serverDec, JTextArea serverArea) {
+        //OutputEventReplayer del
         OutputEventReplayer oep = new OutputEventReplayer(serverDec, socket, null);
         oep.setIsFromServer(true);
+        //Tilføjer outputeventreplayer til listen.
         outputList.add(oep);
+
+        //InputEventReplayer del
         InputEventReplayer iep = new InputEventReplayer(serverDec, serverArea, socket, oep, sender);
         iep.setFromServer(true, outputList);
         updateList.add(iep);
+
+        /*
+         * Hvis listen men InputEventReplayers ikke er tom må der allerede være en forbindelse. Denne inputEventReplayer
+         * kan antages at have en opdateret log (eventHistory). Loggen fra den første forbindelse bliver indsat
+         * i køen for den nye OutPuteventReplayer. På den måde sikrer vi os at den bliver sendt først så den nye
+         * client bliver opdateret.
+         */
         if (!updateList.isEmpty()) {
             System.out.println("adding logevent");
             oep.forcedQueueAdd(new UpToDateEvent(-1, -1, sender, updateList.get(0).getEventList()));
         }
+
         //Sætter OutputEventReplayers InputEventReplayer så den kan tilføje elementer til loggen.
         oep.setIep(iep);
         oepThread = new Thread(oep);
@@ -166,6 +186,11 @@ public class ChatServer implements Runnable{
             Thread.currentThread().interrupt();
         }
         iepThread.start();
+
+        /*
+         * Opdaterer outPutListen på alle InputEventReplayers ( en for hver forbindelse) så de kender alle serverens
+         * OutputEventReplayers og kan sende beskeder til alle clients.
+         */
         for (InputEventReplayer update : updateList){
             update.setFromServer(true, outputList);
         }

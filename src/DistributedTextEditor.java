@@ -31,12 +31,17 @@ public class DistributedTextEditor extends JFrame {
     private Thread clientThread;
     private ChatServer server;
     private Thread serverThread;
+    //Et ID som bliver givet til server og client for at holde styr på hvem der har sendt hvad
     private String id;
 
     public DistributedTextEditor() {
+        //Genererer et ID som er en tilfældig long for at undgå ens ID
         Random idGenerator = new Random();
         id = String.valueOf(idGenerator.nextLong());
         dec = new DocumentEventCapturer(id);
+
+
+
         area1.setFont(new Font("Monospaced",Font.PLAIN,12));
 
         area2.setFont(new Font("Monospaced",Font.PLAIN,12));
@@ -109,6 +114,9 @@ public class DistributedTextEditor extends JFrame {
             saveOld();
             //area1.setText("");
             // TODO: Become a server listening for connections on some port.
+            area1.setText("");
+            //Tænder for dec da man nu skal bruge den
+            dec.setStarted(true);
             server = new ChatServer(dec, area1, id);
             serverThread = new Thread(server);
             serverThread.start();
@@ -139,7 +147,9 @@ public class DistributedTextEditor extends JFrame {
         public void actionPerformed(ActionEvent e) {
             saveOld();
             setTitle("Connecting to " + ipaddress.getText() + ":" + portNumber.getText() + "...");
-
+            //Tænder for dec da man nu skal bruge den
+            area1.setText("");
+            dec.setStarted(true);
             client = new ChatClient(ipaddress.getText(), portNumber.getText(), dec, area1, id);
             clientThread = new Thread(client);
             clientThread.start();

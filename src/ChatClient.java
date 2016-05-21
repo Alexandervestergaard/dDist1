@@ -26,6 +26,7 @@ public class ChatClient implements Runnable {
     private JTextArea clientArea;
     private String localhostAddress;
     protected Socket socket = null;
+    //Et ID som bliver sendt fra texteditoren
     private final String sender;
 
     public ChatClient(String serverName, String portNumber, DocumentEventCapturer clientDec, JTextArea clientArea, String sender) {

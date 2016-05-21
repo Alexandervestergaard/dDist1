@@ -23,6 +23,8 @@ public class DocumentEventCapturer extends DocumentFilter {
     private ChatServer server;
     private boolean isFromServer = false;
     private final String sender;
+    //En variable der siger om dette objekt er started eller ej.
+    private boolean started = false;
 
     /*
      * We are using a blocking queue for two reasons:
@@ -59,31 +61,37 @@ public class DocumentEventCapturer extends DocumentFilter {
             throws BadLocationException {
         if (active) {
         /* Queue a copy of the event and then modify the textarea */
-            if (isFromServer){
-                for (OutputEventReplayer oep : server.getOutputList()){
-                    oep.forcedQueueAdd(new TextInsertEvent(offset, str, timeStamp, sender));
-                }
-            }
-            else {
-                eventHistory.add(new TextInsertEvent(offset, str, timeStamp, sender));
-            }
+            addInsertToStream(offset, str);
             timeStamp++;
         }
             super.insertString(fb, offset, str, a);
+    }
+
+    /*
+     * Tilføjer insertEvents til den rigtige stream som afhænger af om dette objekt er lavet fra client eller server.
+     */
+    private void addInsertToStream(int offset, String str) {
+        /*
+         * Hvis denne DocumentEventCapturer er lavet af en server skal den ikke tilføje eventet til sin kø.
+         * I stedet skal den tilføje den til OutputEventReplayerens kø for alle serverens OutputEventReplayers.
+         */
+        if (isFromServer){
+            for (OutputEventReplayer oep : server.getOutputList()){
+                oep.forcedQueueAdd(new TextInsertEvent(offset, str, timeStamp, sender));
+            }
+        }
+        else {
+            if (started) {
+                eventHistory.add(new TextInsertEvent(offset, str, timeStamp, sender));
+            }
+        }
     }
 
     public void remove(FilterBypass fb, int offset, int length)
             throws BadLocationException {
         if (active) {
         /* Queue a copy of the event and then modify the textarea */
-            if (isFromServer){
-                for (OutputEventReplayer oep : server.getOutputList()){
-                    oep.forcedQueueAdd(new TextRemoveEvent(offset, length, timeStamp, sender));
-                }
-            }
-            else {
-                eventHistory.add(new TextRemoveEvent(offset, length, timeStamp, sender));
-            }
+            addRemoveToStream(offset, length);
             timeStamp++;
         }
             super.remove(fb, offset, length);
@@ -93,27 +101,33 @@ public class DocumentEventCapturer extends DocumentFilter {
         if (active) {
             /* Queue a copy of the event and then modify the text */
             if (length > 0) {
-                if (isFromServer){
-                    for (OutputEventReplayer oep : server.getOutputList()){
-                        oep.forcedQueueAdd(new TextRemoveEvent(offset, length, timeStamp, sender));
-                    }
-                }
-                else {
-                    eventHistory.add(new TextRemoveEvent(offset, length, timeStamp, sender));
-                }
+                addRemoveToStream(offset, length);
                 timeStamp++;
             }
-            if (isFromServer){
-                for (OutputEventReplayer oep : server.getOutputList()){
-                    oep.forcedQueueAdd(new TextInsertEvent(offset, str, timeStamp, sender));
-                }
-            }
-            else {
-                eventHistory.add(new TextInsertEvent(offset, str, timeStamp, sender));
-            }
+            addInsertToStream(offset, str);
             timeStamp++;
         }
         super.replace(fb, offset, length, str, a);
+    }
+
+    /*
+     * Tilføjer insertEvents til den rigtige stream som afhænger af om dette objekt er lavet fra client eller server.
+     */
+    private void addRemoveToStream(int offset, int length) {
+        /*
+         * Hvis denne DocumentEventCapturer er lavet af en server skal den ikke tilføje eventet til sin kø.
+         * I stedet skal den tilføje den til OutputEventReplayerens kø for alle serverens OutputEventReplayers.
+         */
+        if (isFromServer){
+            for (OutputEventReplayer oep : server.getOutputList()){
+                oep.forcedQueueAdd(new TextRemoveEvent(offset, length, timeStamp, sender));
+            }
+        }
+        else {
+            if (started){
+            eventHistory.add(new TextRemoveEvent(offset, length, timeStamp, sender));
+            }
+        }
     }
 
     public void setActive(boolean active) {
@@ -131,5 +145,13 @@ public class DocumentEventCapturer extends DocumentFilter {
     public void setServer(ChatServer server) {
         this.server = server;
         isFromServer = true;
+    }
+
+    /*
+     * Sætter startd som er en variable der bestemme om events skal tilføjes til queues. Hvis man hverken har
+      * kaldt listen eller connect skal input ikek registreres.
+     */
+    public void setStarted(boolean started){
+        this.started = started;
     }
 }

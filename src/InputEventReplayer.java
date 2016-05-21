@@ -259,8 +259,16 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             final TextRemoveEvent tre = (TextRemoveEvent)mte;
             safelyRemoveRange(tre);
         }
+        /*
+         * Hvis TextEventet er et UpToDateEvent, er clienten forbundet til en samtale som allerede er i gang.
+         * Den opdaterer sin egen log til at være eventets log. Dette kan antages at være den nyeste log, og hvis den
+         * ikke er komplet kommer resten snart. Hele indholdet af eventets log bliver tilføjet til denne clients egen log.
+         * Der bliver derefter kaldt rollback til 0 for at blive konsistent. tempEvent er et dummy event der bliver
+         * brugt da rollback metoden skal tage en event. Både tempEvent og UpToDateEventet bliver fjernet fra
+         * loggen når den er færdig.
+         */
         else  if(mte instanceof UpToDateEvent){
-            eventList = ((UpToDateEvent) mte).getLog();
+            eventList.addAll(((UpToDateEvent) mte).getLog());
             eventList.remove(mte);
             MyTextEvent tempEvent = new TextInsertEvent(0, "", 0, sender);
             rollback(0, tempEvent);
@@ -315,6 +323,9 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         this.eventHistoryActive = active;
     }
 
+    /*
+     * Sætter at denne InputEventReplayer er lavet af en server og opdaterer listen over serverens OurputEventReplayers.
+     */
     public void setFromServer(boolean fromServer, ArrayList<OutputEventReplayer> list) {
         isFromServer = fromServer;
         outputList = list;

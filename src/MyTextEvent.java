@@ -8,6 +8,7 @@ import java.io.Serializable;
 public class MyTextEvent implements Serializable, Comparable<MyTextEvent> {
     private int offset;
     private int timeStamp;
+    //Et ID som bliver sendt fra texteditoren
     private final String sender;
 
     MyTextEvent(int offset, int timeStamp, String sender) {

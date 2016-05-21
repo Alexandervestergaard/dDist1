@@ -15,12 +15,15 @@ public class ChatServer implements Runnable{
 
     private DocumentEventCapturer serverDec;
     private JTextArea serverArea;
+    private DistributedTextEditor owner;
+    private boolean interrupted = false;
 
-    public ChatServer(DocumentEventCapturer serverDec, JTextArea serverArea, String sender) {
+    public ChatServer(DocumentEventCapturer serverDec, JTextArea serverArea, String sender, DistributedTextEditor owner) {
         this.serverDec = serverDec;
         this.serverArea = serverArea;
         this.sender = sender;
         serverDec.setServer(this);
+        this.owner = owner;
     }
 
     /*
@@ -77,10 +80,11 @@ public class ChatServer implements Runnable{
         try {
             serverSocket = new ServerSocket(portNumber);
         } catch (IOException e) {
-            serverSocket = null;
+            //serverSocket = null;
             System.err.println("Cannot open server socket on port number" + portNumber);
             System.err.println(e);
-            System.exit(-1);
+            //System.exit(-1);
+            interrupted = true;
         }
     }
 
@@ -94,6 +98,7 @@ public class ChatServer implements Runnable{
                 serverSocket = null;
             } catch (IOException e) {
                 System.err.println(e);
+                e.printStackTrace();
             }
         }
     }
@@ -110,6 +115,7 @@ public class ChatServer implements Runnable{
             res = serverSocket.accept();
         } catch (IOException e) {
             // We return null on IOExceptions
+            e.printStackTrace();
         }
         return res;
     }
@@ -129,7 +135,7 @@ public class ChatServer implements Runnable{
          * Venter på at en client forbinder sig og opretter streams. Efter en forbindelse er oprettet venter den på
          * at der kommer flere.
          */
-        while (true) {
+        while (!interrupted) {
             socket = waitForConnectionFromClient();
             createIOStreams(socket, serverDec, serverArea);
 
@@ -143,8 +149,14 @@ public class ChatServer implements Runnable{
             }
         }
 
-        deregisterOnPort();
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        disconnect();
 
+        owner.connect();
         System.out.println("Goodbuy world!");
     }
 

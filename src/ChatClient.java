@@ -28,13 +28,16 @@ public class ChatClient implements Runnable {
     protected Socket socket = null;
     //Et ID som bliver sendt fra texteditoren
     private final String sender;
+    private DistributedTextEditor owner;
 
-    public ChatClient(String serverName, String portNumber, DocumentEventCapturer clientDec, JTextArea clientArea, String sender) {
+    public ChatClient(String serverName, String portNumber, DocumentEventCapturer clientDec, JTextArea clientArea, String sender, DistributedTextEditor owner) {
         this.serverName = serverName;
         this.portNumber = Integer.parseInt(portNumber);
         this.clientDec = clientDec;
         this.clientArea = clientArea;
         this.sender = sender;
+        this.owner = owner;
+        clientDec.setServer(null);
     }
 
     /**
@@ -91,20 +94,20 @@ public class ChatClient implements Runnable {
      */
     public void disconnect(){
         try {
+            iepThread.interrupt();
+            oepThread.interrupt();
             socket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
         socket = null;
         res = null;
-        oepThread.interrupt();
-        iepThread.interrupt();
     }
 
     /*
      * sets up Replayers and Threads to run them. The Replayers sends and reads textevents to communicate with the client.
      */
-    private void createIOStreams(Socket socket, DocumentEventCapturer clientDec, JTextArea clientArea2) {
+    private void createIOStreams(Socket socket, DocumentEventCapturer clientDec, JTextArea clientArea) {
         if(oepThread.isAlive()) {
             oepThread.interrupt();
         }
@@ -112,7 +115,7 @@ public class ChatClient implements Runnable {
             iepThread.interrupt();
         }
         OutputEventReplayer oep = new OutputEventReplayer(clientDec, socket, null);
-        InputEventReplayer iep = new InputEventReplayer(clientDec, clientArea2, socket, oep, sender);
+        InputEventReplayer iep = new InputEventReplayer(clientDec, clientArea, socket, oep, sender);
         //Sætter OutputEventReplayers InputEventReplayer så den kan tilføje elementer til loggen.
         oep.setIep(iep);
         oepThread = new Thread(oep);
@@ -124,5 +127,7 @@ public class ChatClient implements Runnable {
             Thread.currentThread().interrupt();
         }
         iepThread.start();
+        iep.setOwner(owner);
+        iep.setClient(this);
     }
 }

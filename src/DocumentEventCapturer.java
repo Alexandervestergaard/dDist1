@@ -143,8 +143,14 @@ public class DocumentEventCapturer extends DocumentFilter {
     }
 
     public void setServer(ChatServer server) {
-        this.server = server;
-        isFromServer = true;
+        if (server != null) {
+            this.server = server;
+            isFromServer = true;
+        }
+        else {
+            this.server = null;
+            isFromServer = false;
+        }
     }
 
     /*

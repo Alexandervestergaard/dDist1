@@ -37,6 +37,8 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
     private final String sender;
     private boolean isFromServer = false;
     private ArrayList<OutputEventReplayer> outputList;
+    private DistributedTextEditor owner;
+    private ChatClient client;
 
     public InputEventReplayer(DocumentEventCapturer dec, JTextArea area, Socket socket, OutputEventReplayer oer, String sender) {
         this.dec = dec;
@@ -69,7 +71,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                     try {
                         ois = new ObjectInputStream(socket.getInputStream());
                         MyTextEvent mte;
-                        while ((mte = (MyTextEvent) ois.readObject()) != null){
+                        while ((mte = (MyTextEvent) ois.readObject()) != null) {
                             System.out.println("my id: " + sender + " mte id: " + mte.getSender() + " says EventQueueThread and: " + (mte.getSender() != sender));
                             if (!mte.getSender().equals(sender)) {
                                 System.out.println("mte being added to event queue: " + mte);
@@ -82,14 +84,10 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                             }
                             mte = null;
                         }
-                    } catch (EOFException e){
+                    } catch (Exception e) {
+                        owner.listen();
                         e.printStackTrace();
-                    } catch (OptionalDataException e){
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
+                        return;
                     }
                 }
             }
@@ -184,7 +182,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             System.out.println("tempList: ");
             for (MyTextEvent m : tempList){
                 //waitForOneSecond();
-                    doMTE(m);
+                doMTE(m);
                 if (m instanceof TextInsertEvent) {
                     System.out.print(((TextInsertEvent) m).getText() + ", ");
                 }
@@ -244,17 +242,17 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
     private void doMTE(MyTextEvent mte) {
         if (mte instanceof TextInsertEvent) {
             final TextInsertEvent tie = (TextInsertEvent)mte;
-                    try {
-                        System.out.println("tie in event queue, trying to write to area2 ");
-                        turnOff();
-                        if (tie.getOffset() <= area.getText().length()) {
-                            area.insert(tie.getText(), tie.getOffset());
-                        }
-                        turnOn();
-                    } catch (Exception e) {
-                        System.err.println(e);
-                        e.printStackTrace();
-                    }
+            try {
+                System.out.println("tie in event queue, trying to write to area2 ");
+                turnOff();
+                if (tie.getOffset() <= area.getText().length()) {
+                    area.insert(tie.getText(), tie.getOffset());
+                }
+                turnOn();
+            } catch (Exception e) {
+                System.err.println(e);
+                e.printStackTrace();
+            }
         } else if (mte instanceof TextRemoveEvent) {
             final TextRemoveEvent tre = (TextRemoveEvent)mte;
             safelyRemoveRange(tre);
@@ -329,5 +327,13 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
     public void setFromServer(boolean fromServer, ArrayList<OutputEventReplayer> list) {
         isFromServer = fromServer;
         outputList = list;
+    }
+
+    public void setOwner(DistributedTextEditor owner) {
+        this.owner = owner;
+    }
+
+    public void setClient(ChatClient client) {
+        this.client = client;
     }
 }

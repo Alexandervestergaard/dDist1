@@ -34,6 +34,8 @@ public class DistributedTextEditor extends JFrame {
     //Et ID som bliver givet til server og client for at holde styr på hvem der har sendt hvad
     private String id;
 
+    private DistributedTextEditor me = this;
+
     public DistributedTextEditor() {
         //Genererer et ID som er en tilfældig long for at undgå ens ID
         Random idGenerator = new Random();
@@ -111,59 +113,73 @@ public class DistributedTextEditor extends JFrame {
      */
     Action Listen = new AbstractAction("Listen") {
         public void actionPerformed(ActionEvent e) {
-            saveOld();
-            //area1.setText("");
-            // TODO: Become a server listening for connections on some port.
-            area1.setText("");
-            //Tænder for dec da man nu skal bruge den
-            dec.setStarted(true);
-            server = new ChatServer(dec, area1, id);
-            serverThread = new Thread(server);
-            serverThread.start();
-            try {
-                Thread.sleep(1000);                 //1000 milliseconds is one second.
-            } catch(InterruptedException ex) {
-                Thread.currentThread().interrupt();
-            }
-            System.out.println("Server running");
-            localhostAddress = server.localhostAddress;
-            System.out.println("localhost address: " + localhostAddress);
-            setTitle("I'm listening on " + localhostAddress);
-            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-            clipboard.setContents(new StringSelection(localhostAddress), new StringSelection(localhostAddress));
-            //area1.setText("IP address copied to clip-board");
-
-
-            changed = true;
-            Save.setEnabled(true);
-            SaveAs.setEnabled(true);
+            listen();
         }
     };
+
+    public void listen() {
+        //saveOld();
+        //area1.setText("");
+        // TODO: Become a server listening for connections on some port.
+        if (clientThread != null && clientThread.isAlive()){
+            disconnect();
+        }
+        area1.setText("");
+        //Tænder for dec da man nu skal bruge den
+        dec.setStarted(true);
+        server = new ChatServer(dec, area1, id, me);
+        serverThread = new Thread(server);
+        serverThread.start();
+        try {
+            Thread.sleep(1000);                 //1000 milliseconds is one second.
+        } catch(InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+        System.out.println("Server running");
+        localhostAddress = server.localhostAddress;
+        System.out.println("localhost address: " + localhostAddress);
+        setTitle("I'm listening on " + localhostAddress);
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        clipboard.setContents(new StringSelection(localhostAddress), new StringSelection(localhostAddress));
+        //area1.setText("IP address copied to clip-board");
+
+
+        changed = true;
+        Save.setEnabled(true);
+        SaveAs.setEnabled(true);
+    }
 
     /*
      * Sets up a client and starts a Thread with the client.
      */
     Action Connect = new AbstractAction("Connect") {
         public void actionPerformed(ActionEvent e) {
-            saveOld();
-            setTitle("Connecting to " + ipaddress.getText() + ":" + portNumber.getText() + "...");
-            //Tænder for dec da man nu skal bruge den
-            area1.setText("");
-            dec.setStarted(true);
-            client = new ChatClient(ipaddress.getText(), portNumber.getText(), dec, area1, id);
-            clientThread = new Thread(client);
-            clientThread.start();
-            try {
-                Thread.sleep(1000);                 //1000 milliseconds is one second.
-            } catch(InterruptedException ex) {
-                Thread.currentThread().interrupt();
-            }
-
-            changed = true;
-            Save.setEnabled(true);
-            SaveAs.setEnabled(true);
+            connect();
         }
     };
+
+    public void connect() {
+        if (serverThread != null && serverThread.isAlive()){
+            serverThread.interrupt();
+        }
+        //saveOld();
+        setTitle("Connecting to " + ipaddress.getText() + ":" + portNumber.getText() + "...");
+        //Tænder for dec da man nu skal bruge den
+        area1.setText("");
+        dec.setStarted(true);
+        client = new ChatClient(ipaddress.getText(), portNumber.getText(), dec, area1, id, me);
+        clientThread = new Thread(client);
+        clientThread.start();
+        try {
+            Thread.sleep(1000);                 //1000 milliseconds is one second.
+        } catch(InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+
+        changed = true;
+        Save.setEnabled(true);
+        SaveAs.setEnabled(true);
+    }
 
     /*
      * An attempt at disconnecting. Detects wether it is currently set to listen or connect.
@@ -171,24 +187,32 @@ public class DistributedTextEditor extends JFrame {
      */
     Action Disconnect = new AbstractAction("Disconnect") {
         public void actionPerformed(ActionEvent e) {
-            setTitle("Disconnected");
-            if (server != null){
-                server.disconnect();
-                server = null;
-                serverThread.interrupt();
-                area1.setText("");
-                area2.setText("");
-            }
-            else if(client != null){
-                client.disconnect();
-                client = null;
-                clientThread.interrupt();
-                area1.setText("");
-                area2.setText("");
-            }
-
+            disconnect();
         }
     };
+
+    private void disconnect() {
+        try {
+            Thread.sleep((long) (Math.random()*6000));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        setTitle("Disconnected");
+        if (server != null){
+            server.disconnect();
+            server = null;
+            serverThread.interrupt();
+            area1.setText("");
+            area2.setText("");
+        }
+        else if(client != null){
+            client.disconnect();
+            client = null;
+            clientThread.interrupt();
+            area1.setText("");
+            area2.setText("");
+        }
+    }
 
     Action Save = new AbstractAction("Save") {
         public void actionPerformed(ActionEvent e) {

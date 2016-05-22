@@ -85,8 +85,10 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                             mte = null;
                         }
                     } catch (Exception e) {
-                        owner.listen();
-                        e.printStackTrace();
+                        if (owner != null) {
+                            owner.listen();
+                        }
+                        //e.printStackTrace();
                         return;
                     }
                 }
@@ -113,10 +115,10 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                     if (mte.getTimeStamp() >= dec.getTimeStamp()) {
                         dec.setTimeStamp(mte.getTimeStamp() + 1);
                         System.out.println("impossible time");
-                        doMTE(mte);
                         if (!eventList.contains(mte)) {
                             eventList.add(mte);
                         }
+                        doMTE(mte);
                     } else {
                         System.out.println("everything is fine");
                         rollback(mte.getTimeStamp(), mte);
@@ -266,11 +268,20 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
          * loggen når den er færdig.
          */
         else  if(mte instanceof UpToDateEvent){
-            eventList.addAll(((UpToDateEvent) mte).getLog());
+            //eventList.addAll(((UpToDateEvent) mte).getLog());
+            eventList = ((UpToDateEvent) mte).getLog();
             eventList.remove(mte);
+            /*
             MyTextEvent tempEvent = new TextInsertEvent(0, "", 0, sender);
             rollback(0, tempEvent);
-            eventList.remove(tempEvent);
+            eventList.remove(tempEvent);*/
+            area.setText("");
+            System.out.println("log length: " + eventList.size());
+            System.out.println(eventList.toString());
+            for (MyTextEvent m : eventList){
+                doMTE(m);
+                System.out.println("log length: " + eventList.size());
+            }
         }
     }
 

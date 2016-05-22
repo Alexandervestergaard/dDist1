@@ -68,7 +68,7 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
                     System.out.println("oos write to stream: " + mte.toString());
                     oos.writeObject(mte);
                     System.out.println("Adding to eventlist from outputreplayer");
-                    if (!iep.getEventList().contains(mte)) {
+                    if (!iep.getEventList().contains(mte) && !(mte instanceof UpToDateEvent)) {
                         iep.getEventList().add(mte);
                     }
                 }

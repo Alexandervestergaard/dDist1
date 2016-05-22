@@ -184,7 +184,7 @@ public class ChatServer implements Runnable{
          */
         if (!updateList.isEmpty()) {
             System.out.println("adding logevent");
-            oep.forcedQueueAdd(new UpToDateEvent(-1, -1, sender, updateList.get(0).getEventList()));
+            oep.forcedQueueAdd(new UpToDateEvent(-1, serverDec.getTimeStamp(), sender, updateList.get(0).getEventList()));
         }
 
         //Sætter OutputEventReplayers InputEventReplayer så den kan tilføje elementer til loggen.

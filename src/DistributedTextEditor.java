@@ -192,11 +192,6 @@ public class DistributedTextEditor extends JFrame {
     };
 
     private void disconnect() {
-        try {
-            Thread.sleep((long) (Math.random()*6000));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         setTitle("Disconnected");
         if (server != null){
             server.disconnect();

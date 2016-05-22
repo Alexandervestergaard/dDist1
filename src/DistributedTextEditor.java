@@ -4,6 +4,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Random;
 import javax.swing.*;
 import javax.swing.text.*;
@@ -35,6 +36,8 @@ public class DistributedTextEditor extends JFrame {
     private String id;
 
     private DistributedTextEditor me = this;
+
+    //private ArrayList<MyTextEvent> startingList = new ArrayList<MyTextEvent>();
 
     public DistributedTextEditor() {
         //Genererer et ID som er en tilfældig long for at undgå ens ID
@@ -124,10 +127,9 @@ public class DistributedTextEditor extends JFrame {
         if (clientThread != null && clientThread.isAlive()){
             disconnect();
         }
-        area1.setText("");
         //Tænder for dec da man nu skal bruge den
         dec.setStarted(true);
-        server = new ChatServer(dec, area1, id, me);
+        server = new ChatServer(dec, area1, id, me/*, startingList*/);
         serverThread = new Thread(server);
         serverThread.start();
         try {
@@ -165,7 +167,7 @@ public class DistributedTextEditor extends JFrame {
         //saveOld();
         setTitle("Connecting to " + ipaddress.getText() + ":" + portNumber.getText() + "...");
         //Tænder for dec da man nu skal bruge den
-        area1.setText("");
+        //area1.setText("");
         dec.setStarted(true);
         client = new ChatClient(ipaddress.getText(), portNumber.getText(), dec, area1, id, me);
         clientThread = new Thread(client);
@@ -273,5 +275,8 @@ public class DistributedTextEditor extends JFrame {
         new DistributedTextEditor();
     }
 
+    /*public void setStartingList(ArrayList<MyTextEvent> startingList) {
+        this.startingList = startingList;
+    }*/
 }
 

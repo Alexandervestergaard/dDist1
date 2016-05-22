@@ -17,13 +17,15 @@ public class ChatServer implements Runnable{
     private JTextArea serverArea;
     private DistributedTextEditor owner;
     private boolean interrupted = false;
+    private ArrayList<MyTextEvent> startingList;
 
-    public ChatServer(DocumentEventCapturer serverDec, JTextArea serverArea, String sender, DistributedTextEditor owner) {
+    public ChatServer(DocumentEventCapturer serverDec, JTextArea serverArea, String sender, DistributedTextEditor owner/*, ArrayList<MyTextEvent> startingList*/) {
         this.serverDec = serverDec;
         this.serverArea = serverArea;
         this.sender = sender;
         serverDec.setServer(this);
         this.owner = owner;
+        //this.startingList = startingList;
     }
 
     /*
@@ -51,7 +53,7 @@ public class ChatServer implements Runnable{
     private ArrayList<InputEventReplayer> updateList = new ArrayList<InputEventReplayer>();
     //Et ID sombliver givet fra teksteditoren
     private final String sender;
-
+    private ArrayList<MyTextEvent> serverLog = new ArrayList<MyTextEvent>();
 
 
     /**
@@ -171,21 +173,27 @@ public class ChatServer implements Runnable{
         //Tilføjer outputeventreplayer til listen.
         outputList.add(oep);
 
-        //InputEventReplayer del
-        InputEventReplayer iep = new InputEventReplayer(serverDec, serverArea, socket, oep, sender);
-        iep.setFromServer(true, outputList);
-        updateList.add(iep);
-
         /*
          * Hvis listen men InputEventReplayers ikke er tom må der allerede være en forbindelse. Denne inputEventReplayer
          * kan antages at have en opdateret log (eventHistory). Loggen fra den første forbindelse bliver indsat
          * i køen for den nye OutPuteventReplayer. På den måde sikrer vi os at den bliver sendt først så den nye
          * client bliver opdateret.
          */
+
+        removeDeadInput();
+        System.out.println("updateList-size: " + updateList.size());
         if (!updateList.isEmpty()) {
             System.out.println("adding logevent");
             oep.forcedQueueAdd(new UpToDateEvent(-1, serverDec.getTimeStamp(), sender, updateList.get(0).getEventList()));
         }
+        else {
+            //oep.forcedQueueAdd(new UpToDateEvent(-1, serverDec.getTimeStamp(), sender, startingList));
+        }
+
+        //InputEventReplayer del
+        InputEventReplayer iep = new InputEventReplayer(serverDec, serverArea, socket, oep, sender);
+        iep.setFromServer(true, outputList);
+        updateList.add(iep);
 
         //Sætter OutputEventReplayers InputEventReplayer så den kan tilføje elementer til loggen.
         oep.setIep(iep);
@@ -208,6 +216,23 @@ public class ChatServer implements Runnable{
         }
     }
 
+    private void removeDeadInput() {
+        int maxLogLength = 0;
+        ArrayList<InputEventReplayer> tempRemoveList = new ArrayList<InputEventReplayer>();
+        for (InputEventReplayer i : updateList){
+            maxLogLength = Math.max(i.getEventList().size(), maxLogLength);
+        }
+        for (InputEventReplayer i2 : updateList) {
+            if (i2.getEventList().size() < maxLogLength - 1) {
+                tempRemoveList.add(i2);
+            }
+        }
+        for (InputEventReplayer remove : tempRemoveList){
+            outputList.remove(remove.getOer());
+            updateList.remove(remove);
+        }
+    }
+
     /*
      * An attempt at disconnecting. Deregisters on the port and interrupts the streams. Works with both client and server disconnects.
      */
@@ -219,5 +244,14 @@ public class ChatServer implements Runnable{
 
     public ArrayList<OutputEventReplayer> getOutputList(){
         return outputList;
+    }
+
+    public ArrayList<MyTextEvent> getServerLog() {
+        return serverLog;
+    }
+
+    public void addToServerLog(MyTextEvent newEvent) {
+        if (serverLog.contains(newEvent)){return;}
+        this.serverLog.add(newEvent);
     }
 }

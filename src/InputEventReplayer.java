@@ -86,6 +86,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                         }
                     } catch (Exception e) {
                         if (owner != null) {
+                            //owner.setStartingList(eventList);
                             owner.listen();
                         }
                         //e.printStackTrace();
@@ -346,5 +347,9 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
 
     public void setClient(ChatClient client) {
         this.client = client;
+    }
+
+    public OutputEventReplayer getOer(){
+        return oer;
     }
 }

@@ -86,11 +86,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                             mte = null;
                         }
                     } catch (Exception e) {
-                        if (owner != null) {
-                            //owner.setStartingList(eventList);
-                            //owner.listen();
-                        }
-                        //e.printStackTrace();
+                        e.printStackTrace();
                         return;
                     }
                 }
@@ -278,7 +274,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         else  if(mte instanceof UpToDateEvent){
             //eventList.addAll(((UpToDateEvent) mte).getLog());
             eventList = ((UpToDateEvent) mte).getLog();
-            eventList.remove(mte);
+            //eventList.remove(mte);
             area.setText("");
             System.out.println("log length: " + eventList.size());
             System.out.println(eventList.toString());
@@ -291,13 +287,15 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             localhostAddress = ((LocalhostEvent) mte).getLocalhostAddress();
         }
         else if (mte instanceof ConnectToEvent){
+            System.out.println("TRYING TO CONNECT IN 2!!!");
             try {
-                Thread.sleep(1000);
+                Thread.sleep(2000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            owner.setIpaddressString(localhostAddress);
+            owner.setIpaddressString(((ConnectToEvent) mte).getNewAddress());
             owner.connect();
+
         }
         else if (mte instanceof CreateServerEvent){
             owner.listen();
@@ -382,6 +380,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
     public void addToLog(MyTextEvent mte) {
         if (eventHistoryActive) {
             eventList.add(mte);
+            System.out.println("log add");
         }
     }
 }

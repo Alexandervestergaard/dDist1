@@ -116,7 +116,9 @@ public class ChatServer implements Runnable{
     protected Socket waitForConnectionFromClient() {
         res = null;
         try {
-            res = serverSocket.accept();
+            if (!serverSocket.isClosed()) {
+                res = serverSocket.accept();
+            }
         } catch (IOException e) {
             // We return null on IOExceptions
             e.printStackTrace();
@@ -151,12 +153,6 @@ public class ChatServer implements Runnable{
                 break;
             }
         }
-
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         disconnect();
 
         //owner.connect();
@@ -181,7 +177,7 @@ public class ChatServer implements Runnable{
          * client bliver opdateret.
          */
 
-        removeDeadInput();
+        //removeDeadInput();
         System.out.println("updateList-size: " + updateList.size());
         if (!updateList.isEmpty()) {
             System.out.println("adding logevent");
@@ -193,8 +189,10 @@ public class ChatServer implements Runnable{
 
         //InputEventReplayer del
         InputEventReplayer iep = new InputEventReplayer(serverDec, serverArea, socket, oep, sender);
-        iep.setFromServer(true, outputList);
         updateList.add(iep);
+        for (InputEventReplayer update : updateList) {
+            iep.setFromServer(true, outputList);
+        }
 
         //Sætter OutputEventReplayers InputEventReplayer så den kan tilføje elementer til loggen.
         oep.setIep(iep);
@@ -218,12 +216,15 @@ public class ChatServer implements Runnable{
     }
 
     private void removeDeadInput() {
+        System.out.println("Before size: " + updateList.size());
         int maxLogLength = 0;
         ArrayList<InputEventReplayer> tempRemoveList = new ArrayList<InputEventReplayer>();
         for (InputEventReplayer i : updateList){
             maxLogLength = Math.max(i.getEventList().size(), maxLogLength);
         }
+        System.out.println("Max length: " + maxLogLength);
         for (InputEventReplayer i2 : updateList) {
+            System.out.println("Individual size: " + i2.getEventList().size());
             if (i2.getEventList().size() < maxLogLength - 1) {
                 tempRemoveList.add(i2);
             }
@@ -232,6 +233,7 @@ public class ChatServer implements Runnable{
             outputList.remove(remove.getOer());
             updateList.remove(remove);
         }
+        System.out.println("After size: " + updateList.size());
     }
 
     /*
@@ -246,8 +248,10 @@ public class ChatServer implements Runnable{
     }
 
     private void notifyClients() {
-        removeDeadInput();
-        outputList.get(0).forcedQueueAdd(new CreateServerEvent(-1, serverDec.getTimeStamp(), sender));
+        //removeDeadInput();
+        if (!outputList.isEmpty()){
+            outputList.get(0).forcedQueueAdd(new CreateServerEvent(-1, serverDec.getTimeStamp(), sender));
+        }
         String connectTo = updateList.get(0).getLocalhostAddress();
         System.out.println("Outputlist size: " + outputList.size());
         for (int i=1; i<outputList.size(); i++){

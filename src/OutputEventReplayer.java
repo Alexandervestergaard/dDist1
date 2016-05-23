@@ -36,10 +36,12 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
         this.iep = iep;
         this.owner = owner;
         try {
-            System.out.println("Outputeventreplayer about to create outputstream");
-            oos = new ObjectOutputStream(this.socket.getOutputStream());
-            oos.flush();
-            System.out.println("Outputeventreplayer created outputstream");
+            if (socket != null) {
+                System.out.println("Outputeventreplayer about to create outputstream");
+                oos = new ObjectOutputStream(this.socket.getOutputStream());
+                oos.flush();
+                System.out.println("Outputeventreplayer created outputstream");
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

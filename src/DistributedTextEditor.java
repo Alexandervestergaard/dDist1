@@ -121,12 +121,7 @@ public class DistributedTextEditor extends JFrame {
     };
 
     public void listen() {
-        //saveOld();
-        //area1.setText("");
-        // TODO: Become a server listening for connections on some port.
-        if (clientThread != null && clientThread.isAlive()){
-            disconnect();
-        }
+        disconnect();
         //Tænder for dec da man nu skal bruge den
         dec.setStarted(true);
         server = new ChatServer(dec, area1, id, me/*, startingList*/);
@@ -161,9 +156,7 @@ public class DistributedTextEditor extends JFrame {
     };
 
     public void connect() {
-        if (serverThread != null && serverThread.isAlive()){
-            serverThread.interrupt();
-        }
+        disconnect();
         //saveOld();
         setTitle("Connecting to " + ipaddress.getText() + ":" + portNumber.getText() + "...");
         //Tænder for dec da man nu skal bruge den

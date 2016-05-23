@@ -88,7 +88,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                     } catch (Exception e) {
                         if (owner != null) {
                             //owner.setStartingList(eventList);
-                            owner.listen();
+                            //owner.listen();
                         }
                         //e.printStackTrace();
                         return;
@@ -105,6 +105,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
      * eller også bliver rollback metoden kaldt med eventets timstamp og eventet selv.
      */
     public void run() {
+        boolean test = true;
         boolean wasInterrupted = false;
         while (!wasInterrupted) {
             try {
@@ -112,6 +113,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                 MyTextEvent-objekter hives ud af eventHistory, meget lig EventReplayer
                  */
                 if (eventHistoryActive) {
+                    test = true;
                     final MyTextEvent mte = eventHistory.take();
                     System.out.println("my id: " + sender + " mte id: " + mte.getSender());
                     if (mte.getTimeStamp() >= dec.getTimeStamp()) {
@@ -126,7 +128,11 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                         rollback(mte.getTimeStamp(), mte);
                     }
                 }
-                System.out.println(eventList.toString());
+                if (test) {
+                    System.out.print("turned on: " + eventHistoryActive);
+                    System.out.println(eventList.toString());
+                }
+                test = false;
             } catch (Exception e) {
                 e.printStackTrace();
                 wasInterrupted = true;
@@ -273,10 +279,6 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             //eventList.addAll(((UpToDateEvent) mte).getLog());
             eventList = ((UpToDateEvent) mte).getLog();
             eventList.remove(mte);
-            /*
-            MyTextEvent tempEvent = new TextInsertEvent(0, "", 0, sender);
-            rollback(0, tempEvent);
-            eventList.remove(tempEvent);*/
             area.setText("");
             System.out.println("log length: " + eventList.size());
             System.out.println(eventList.toString());
@@ -375,5 +377,11 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
 
     public String getSender (){
         return sender;
+    }
+
+    public void addToLog(MyTextEvent mte) {
+        if (eventHistoryActive) {
+            eventList.add(mte);
+        }
     }
 }

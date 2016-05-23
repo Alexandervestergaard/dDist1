@@ -25,6 +25,8 @@ public class ChatServer implements Runnable{
         this.sender = sender;
         serverDec.setServer(this);
         this.owner = owner;
+
+        printLocalHostAddress();
         //this.startingList = startingList;
     }
 
@@ -129,7 +131,6 @@ public class ChatServer implements Runnable{
     public void run() {
         System.out.println("Hello world!");
 
-        printLocalHostAddress();
 
         registerOnPort();
 
@@ -158,7 +159,7 @@ public class ChatServer implements Runnable{
         }
         disconnect();
 
-        owner.connect();
+        //owner.connect();
         System.out.println("Goodbuy world!");
     }
 
@@ -241,6 +242,7 @@ public class ChatServer implements Runnable{
         deregisterOnPort();
         iepThread.interrupt();
         oepThread.interrupt();
+        interrupted = true;
     }
 
     private void notifyClients() {

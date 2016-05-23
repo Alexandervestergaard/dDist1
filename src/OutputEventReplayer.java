@@ -78,7 +78,7 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
                     oos.writeObject(mte);
                     System.out.println("Adding to eventlist from outputreplayer");
                     if (!iep.getEventList().contains(mte) && !(mte instanceof Unlogable)) {
-                        iep.getEventList().add(mte);
+                        iep.addToLog(mte);
                     }
                 }
 

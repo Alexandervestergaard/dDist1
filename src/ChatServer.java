@@ -249,7 +249,9 @@ public class ChatServer implements Runnable{
         removeDeadInput();
         outputList.get(0).forcedQueueAdd(new CreateServerEvent(-1, serverDec.getTimeStamp(), sender));
         String connectTo = updateList.get(0).getLocalhostAddress();
-        for (int i=1; i<outputList.size()-1; i++){
+        System.out.println("Outputlist size: " + outputList.size());
+        for (int i=1; i<outputList.size(); i++){
+            System.out.println("sending connectevent");
             outputList.get(i).forcedQueueAdd(new ConnectToEvent(-1, serverDec.getTimeStamp(), sender, connectTo));
         }
     }

@@ -34,8 +34,8 @@
       <file leaf-file-name="InputEventReplayer.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/InputEventReplayer.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="198">
-              <caret line="356" column="88" selection-start-line="356" selection-start-column="88" selection-end-line="356" selection-end-column="88" />
+            <state relative-caret-position="372">
+              <caret line="294" column="30" selection-start-line="294" selection-start-column="30" selection-end-line="294" selection-end-column="30" />
               <folding>
                 <element signature="n#!!doc" expanded="true" />
                 <element signature="imports" expanded="true" />
@@ -48,8 +48,8 @@
       <file leaf-file-name="OutputEventReplayer.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/OutputEventReplayer.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="211">
-              <caret line="80" column="37" selection-start-line="80" selection-start-column="37" selection-end-line="80" selection-end-column="37" />
+            <state relative-caret-position="364">
+              <caret line="77" column="0" selection-start-line="77" selection-start-column="0" selection-end-line="77" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -81,8 +81,8 @@
       <file leaf-file-name="ChatServer.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/ChatServer.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1003">
-              <caret line="31" column="0" selection-start-line="31" selection-start-column="0" selection-end-line="31" selection-end-column="0" />
+            <state relative-caret-position="-10">
+              <caret line="224" column="4" selection-start-line="224" selection-start-column="4" selection-end-line="224" selection-end-column="4" />
               <folding />
             </state>
           </provider>
@@ -117,8 +117,8 @@
       <file leaf-file-name="DistributedTextEditor.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/DistributedTextEditor.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="457">
-              <caret line="145" column="32" selection-start-line="145" selection-start-column="32" selection-end-line="145" selection-end-column="32" />
+            <state relative-caret-position="559">
+              <caret line="188" column="10" selection-start-line="188" selection-start-column="10" selection-end-line="188" selection-end-column="10" />
               <folding />
             </state>
           </provider>
@@ -127,8 +127,8 @@
       <file leaf-file-name="DocumentEventCapturer.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/DocumentEventCapturer.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="159">
-              <caret line="108" column="9" selection-start-line="108" selection-start-column="9" selection-end-line="108" selection-end-column="9" />
+            <state relative-caret-position="211">
+              <caret line="50" column="0" selection-start-line="50" selection-start-column="0" selection-end-line="50" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -179,8 +179,8 @@
         <option value="$PROJECT_DIR$/src/LocalhostEvent.java" />
         <option value="$PROJECT_DIR$/src/ChatClient.java" />
         <option value="$PROJECT_DIR$/src/DistributedTextEditor.java" />
-        <option value="$PROJECT_DIR$/src/ChatServer.java" />
         <option value="$PROJECT_DIR$/src/OutputEventReplayer.java" />
+        <option value="$PROJECT_DIR$/src/ChatServer.java" />
         <option value="$PROJECT_DIR$/src/InputEventReplayer.java" />
       </list>
     </option>
@@ -883,7 +883,14 @@
       <option name="project" value="LOCAL" />
       <updated>1464011778277</updated>
     </task>
-    <option name="localTasksCounter" value="39" />
+    <task id="LOCAL-00039" summary="Flere peers can nu snakke sammen. Hvis man kommer ind i samtalen efter den er started bliver man opdateret. Der er en masse unødvendig og langsom kode men der er dele hvor jeg ikke er sikker på hvorfor det virker så jeg tør ikke pilel ved det.                                                                                                                                                                                                                    &#10;Nu med kommentarer! Der er et problem når man tilføjer en client til en samtale som er i gang hvor man lige skal trykke lidt på nogle knapper før den kan skrive til andre clients. Serveren får også et ekstra tegn.&#10;&#10;Nu med electionalgoritme! Hvis en client crasher sker der ikke noget udover at serveren sender beskeder til en der ikke længere findes. Hvis serveren derimod crasher får clienten en exception fordi der ikke er nogen forbindelse længere. Denne exception bliver fanget og laver programmet om til en server. Dette sker for alle clients. Hvis der allerede er en server Får man en exception og man laver sig om til en client igen. Har ikke lavet de store tests så har muligvis fejl.&#10;&#10;Serveren rydder nu op i listen af InputEventReplayers on OutputEventReplayers når en ny peer kommer ind i samtalen. Dette gør at nye clients ikke får en forældet log hvis den først tilsluttede client har været crashed i mens der er skrevet nyt input.&#10;&#10;Den nye electionalgoritme virker måske. Tryk &quot;disconnect&quot; i stedet for at crashe serveren for at teste. Listen delen virker, men connect gør ikke.">
+      <created>1464020619415</created>
+      <option name="number" value="00039" />
+      <option name="presentableId" value="LOCAL-00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1464020619415</updated>
+    </task>
+    <option name="localTasksCounter" value="40" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -935,7 +942,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_NEW_TODO" value="false" />
-    <MESSAGE value="Copied files from directory in exercise 4 to implement the TextEditor" />
     <MESSAGE value="- Works for me" />
     <MESSAGE value="- Works for" />
     <MESSAGE value="InputEvenReplayer" />
@@ -960,7 +966,8 @@
     <MESSAGE value="Flere peers can nu snakke sammen. Hvis man kommer ind i samtalen efter den er started bliver man opdateret. Der er en masse unødvendig og langsom kode men der er dele hvor jeg ikke er sikker på hvorfor det virker så jeg tør ikke pilel ved det.                                                                                                                                                                                                                    &#10;Nu med kommentarer! Der er et problem når man tilføjer en client til en samtale som er i gang hvor man lige skal trykke lidt på nogle knapper før den kan skrive til andre clients. Serveren får også et ekstra tegn.&#10;&#10;Nu med electionalgoritme! Hvis en client crasher sker der ikke noget udover at serveren sender beskeder til en der ikke længere findes. Hvis serveren derimod crasher får clienten en exception fordi der ikke er nogen forbindelse længere. Denne exception bliver fanget og laver programmet om til en server. Dette sker for alle clients. Hvis der allerede er en server Får man en exception og man laver sig om til en client igen. Har ikke lavet de store tests så har muligvis fejl.&#10;&#10;Fejlene skulle være rettet. Der var lidt rod med at få UpToDateEvents ind i loggen. Jeg kan ikke længere komme frem til fejlen." />
     <MESSAGE value="Flere peers can nu snakke sammen. Hvis man kommer ind i samtalen efter den er started bliver man opdateret. Der er en masse unødvendig og langsom kode men der er dele hvor jeg ikke er sikker på hvorfor det virker så jeg tør ikke pilel ved det.                                                                                                                                                                                                                    &#10;Nu med kommentarer! Der er et problem når man tilføjer en client til en samtale som er i gang hvor man lige skal trykke lidt på nogle knapper før den kan skrive til andre clients. Serveren får også et ekstra tegn.&#10;&#10;Nu med electionalgoritme! Hvis en client crasher sker der ikke noget udover at serveren sender beskeder til en der ikke længere findes. Hvis serveren derimod crasher får clienten en exception fordi der ikke er nogen forbindelse længere. Denne exception bliver fanget og laver programmet om til en server. Dette sker for alle clients. Hvis der allerede er en server Får man en exception og man laver sig om til en client igen. Har ikke lavet de store tests så har muligvis fejl.&#10;&#10;Serveren rydder nu op i listen af InputEventReplayers on OutputEventReplayers når en ny peer kommer ind i samtalen. Dette gør at nye clients ikke får en forældet log hvis den først tilsluttede client har været crashed i mens der er skrevet nyt input." />
     <MESSAGE value="Flere peers can nu snakke sammen. Hvis man kommer ind i samtalen efter den er started bliver man opdateret. Der er en masse unødvendig og langsom kode men der er dele hvor jeg ikke er sikker på hvorfor det virker så jeg tør ikke pilel ved det.                                                                                                                                                                                                                    &#10;Nu med kommentarer! Der er et problem når man tilføjer en client til en samtale som er i gang hvor man lige skal trykke lidt på nogle knapper før den kan skrive til andre clients. Serveren får også et ekstra tegn.&#10;&#10;Nu med electionalgoritme! Hvis en client crasher sker der ikke noget udover at serveren sender beskeder til en der ikke længere findes. Hvis serveren derimod crasher får clienten en exception fordi der ikke er nogen forbindelse længere. Denne exception bliver fanget og laver programmet om til en server. Dette sker for alle clients. Hvis der allerede er en server Får man en exception og man laver sig om til en client igen. Har ikke lavet de store tests så har muligvis fejl.&#10;&#10;Serveren rydder nu op i listen af InputEventReplayers on OutputEventReplayers når en ny peer kommer ind i samtalen. Dette gør at nye clients ikke får en forældet log hvis den først tilsluttede client har været crashed i mens der er skrevet nyt input.&#10;&#10;Den nye electionalgoritme virker måske. Tryk &quot;disconnect&quot; i stedet for at crashe serveren for at teste" />
-    <option name="LAST_COMMIT_MESSAGE" value="Flere peers can nu snakke sammen. Hvis man kommer ind i samtalen efter den er started bliver man opdateret. Der er en masse unødvendig og langsom kode men der er dele hvor jeg ikke er sikker på hvorfor det virker så jeg tør ikke pilel ved det.                                                                                                                                                                                                                    &#10;Nu med kommentarer! Der er et problem når man tilføjer en client til en samtale som er i gang hvor man lige skal trykke lidt på nogle knapper før den kan skrive til andre clients. Serveren får også et ekstra tegn.&#10;&#10;Nu med electionalgoritme! Hvis en client crasher sker der ikke noget udover at serveren sender beskeder til en der ikke længere findes. Hvis serveren derimod crasher får clienten en exception fordi der ikke er nogen forbindelse længere. Denne exception bliver fanget og laver programmet om til en server. Dette sker for alle clients. Hvis der allerede er en server Får man en exception og man laver sig om til en client igen. Har ikke lavet de store tests så har muligvis fejl.&#10;&#10;Serveren rydder nu op i listen af InputEventReplayers on OutputEventReplayers når en ny peer kommer ind i samtalen. Dette gør at nye clients ikke får en forældet log hvis den først tilsluttede client har været crashed i mens der er skrevet nyt input.&#10;&#10;Den nye electionalgoritme virker måske. Tryk &quot;disconnect&quot; i stedet for at crashe serveren for at teste" />
+    <MESSAGE value="Flere peers can nu snakke sammen. Hvis man kommer ind i samtalen efter den er started bliver man opdateret. Der er en masse unødvendig og langsom kode men der er dele hvor jeg ikke er sikker på hvorfor det virker så jeg tør ikke pilel ved det.                                                                                                                                                                                                                    &#10;Nu med kommentarer! Der er et problem når man tilføjer en client til en samtale som er i gang hvor man lige skal trykke lidt på nogle knapper før den kan skrive til andre clients. Serveren får også et ekstra tegn.&#10;&#10;Nu med electionalgoritme! Hvis en client crasher sker der ikke noget udover at serveren sender beskeder til en der ikke længere findes. Hvis serveren derimod crasher får clienten en exception fordi der ikke er nogen forbindelse længere. Denne exception bliver fanget og laver programmet om til en server. Dette sker for alle clients. Hvis der allerede er en server Får man en exception og man laver sig om til en client igen. Har ikke lavet de store tests så har muligvis fejl.&#10;&#10;Serveren rydder nu op i listen af InputEventReplayers on OutputEventReplayers når en ny peer kommer ind i samtalen. Dette gør at nye clients ikke får en forældet log hvis den først tilsluttede client har været crashed i mens der er skrevet nyt input.&#10;&#10;Den nye electionalgoritme virker måske. Tryk &quot;disconnect&quot; i stedet for at crashe serveren for at teste. Listen delen virker, men connect gør ikke." />
+    <option name="LAST_COMMIT_MESSAGE" value="Flere peers can nu snakke sammen. Hvis man kommer ind i samtalen efter den er started bliver man opdateret. Der er en masse unødvendig og langsom kode men der er dele hvor jeg ikke er sikker på hvorfor det virker så jeg tør ikke pilel ved det.                                                                                                                                                                                                                    &#10;Nu med kommentarer! Der er et problem når man tilføjer en client til en samtale som er i gang hvor man lige skal trykke lidt på nogle knapper før den kan skrive til andre clients. Serveren får også et ekstra tegn.&#10;&#10;Nu med electionalgoritme! Hvis en client crasher sker der ikke noget udover at serveren sender beskeder til en der ikke længere findes. Hvis serveren derimod crasher får clienten en exception fordi der ikke er nogen forbindelse længere. Denne exception bliver fanget og laver programmet om til en server. Dette sker for alle clients. Hvis der allerede er en server Får man en exception og man laver sig om til en client igen. Har ikke lavet de store tests så har muligvis fejl.&#10;&#10;Serveren rydder nu op i listen af InputEventReplayers on OutputEventReplayers når en ny peer kommer ind i samtalen. Dette gør at nye clients ikke får en forældet log hvis den først tilsluttede client har været crashed i mens der er skrevet nyt input.&#10;&#10;Den nye electionalgoritme virker måske. Tryk &quot;disconnect&quot; i stedet for at crashe serveren for at teste. Listen delen virker, men connect gør ikke." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1304,14 +1311,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/DistributedTextEditor.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="457">
-          <caret line="145" column="32" selection-start-line="145" selection-start-column="32" selection-end-line="145" selection-end-column="32" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/ChatClient.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="601">
@@ -1328,34 +1327,42 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/DocumentEventCapturer.java">
+    <entry file="file://$PROJECT_DIR$/src/DistributedTextEditor.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="159">
-          <caret line="108" column="9" selection-start-line="108" selection-start-column="9" selection-end-line="108" selection-end-column="9" />
+        <state relative-caret-position="559">
+          <caret line="188" column="10" selection-start-line="188" selection-start-column="10" selection-end-line="188" selection-end-column="10" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/ChatServer.java">
+    <entry file="file://$PROJECT_DIR$/src/DocumentEventCapturer.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1003">
-          <caret line="31" column="0" selection-start-line="31" selection-start-column="0" selection-end-line="31" selection-end-column="0" />
+        <state relative-caret-position="211">
+          <caret line="50" column="0" selection-start-line="50" selection-start-column="0" selection-end-line="50" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/OutputEventReplayer.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="211">
-          <caret line="80" column="37" selection-start-line="80" selection-start-column="37" selection-end-line="80" selection-end-column="37" />
+        <state relative-caret-position="364">
+          <caret line="77" column="0" selection-start-line="77" selection-start-column="0" selection-end-line="77" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ChatServer.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-10">
+          <caret line="224" column="4" selection-start-line="224" selection-start-column="4" selection-end-line="224" selection-end-column="4" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/InputEventReplayer.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="198">
-          <caret line="356" column="88" selection-start-line="356" selection-start-column="88" selection-end-line="356" selection-end-column="88" />
+        <state relative-caret-position="372">
+          <caret line="294" column="30" selection-start-line="294" selection-start-column="30" selection-end-line="294" selection-end-column="30" />
           <folding>
             <element signature="n#!!doc" expanded="true" />
             <element signature="imports" expanded="true" />

@@ -186,7 +186,7 @@ public class DistributedTextEditor extends JFrame {
         }
     };
 
-    private void disconnect() {
+    public void disconnect() {
         setTitle("Disconnected");
         if (server != null){
             server.disconnect();

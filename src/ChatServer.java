@@ -168,7 +168,7 @@ public class ChatServer implements Runnable{
      */
     private void createIOStreams(Socket socket, DocumentEventCapturer serverDec, JTextArea serverArea) {
         //OutputEventReplayer del
-        OutputEventReplayer oep = new OutputEventReplayer(serverDec, socket, null);
+        OutputEventReplayer oep = new OutputEventReplayer(serverDec, socket, null, null);
         oep.setIsFromServer(true);
         //Tilføjer outputeventreplayer til listen.
         outputList.add(oep);
@@ -237,9 +237,19 @@ public class ChatServer implements Runnable{
      * An attempt at disconnecting. Deregisters on the port and interrupts the streams. Works with both client and server disconnects.
      */
     public void disconnect() {
+        notifyClients();
         deregisterOnPort();
         iepThread.interrupt();
         oepThread.interrupt();
+    }
+
+    private void notifyClients() {
+        removeDeadInput();
+        outputList.get(0).forcedQueueAdd(new CreateServerEvent(-1, serverDec.getTimeStamp(), sender));
+        String connectTo = updateList.get(0).getLocalhostAddress();
+        for (int i=1; i<outputList.size()-1; i++){
+            outputList.get(i).forcedQueueAdd(new ConnectToEvent(-1, serverDec.getTimeStamp(), sender, connectTo));
+        }
     }
 
     public ArrayList<OutputEventReplayer> getOutputList(){

@@ -278,5 +278,9 @@ public class DistributedTextEditor extends JFrame {
     /*public void setStartingList(ArrayList<MyTextEvent> startingList) {
         this.startingList = startingList;
     }*/
+
+    public void setIpaddressString(String newAddress){
+        ipaddress.setText(newAddress);
+    }
 }
 

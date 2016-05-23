@@ -39,6 +39,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
     private ArrayList<OutputEventReplayer> outputList;
     private DistributedTextEditor owner;
     private ChatClient client;
+    private String localhostAddress;
 
     public InputEventReplayer(DocumentEventCapturer dec, JTextArea area, Socket socket, OutputEventReplayer oer, String sender) {
         this.dec = dec;
@@ -116,7 +117,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                     if (mte.getTimeStamp() >= dec.getTimeStamp()) {
                         dec.setTimeStamp(mte.getTimeStamp() + 1);
                         System.out.println("impossible time");
-                        if (!eventList.contains(mte)) {
+                        if (!eventList.contains(mte) && !(mte instanceof Unlogable)) {
                             eventList.add(mte);
                         }
                         doMTE(mte);
@@ -177,7 +178,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             eventList.sort(mteSorter);
             tempList.sort(mteSorter);
 
-            if (!eventList.contains(rollMTE)) {
+            if (!eventList.contains(rollMTE) && !(rollMTE instanceof Unlogable)) {
                 eventList.add(rollMTE);
             }
 
@@ -284,6 +285,21 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                 System.out.println("log length: " + eventList.size());
             }
         }
+        else if (mte instanceof LocalhostEvent){
+            localhostAddress = ((LocalhostEvent) mte).getLocalhostAddress();
+        }
+        else if (mte instanceof ConnectToEvent){
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            owner.setIpaddressString(localhostAddress);
+            owner.connect();
+        }
+        else if (mte instanceof CreateServerEvent){
+            owner.listen();
+        }
     }
 
     /*
@@ -351,5 +367,13 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
 
     public OutputEventReplayer getOer(){
         return oer;
+    }
+
+    public String getLocalhostAddress() {
+        return localhostAddress;
+    }
+
+    public String getSender (){
+        return sender;
     }
 }

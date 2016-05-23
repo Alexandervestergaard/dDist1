@@ -23,16 +23,18 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
     private boolean eventListActive = true;
     private PriorityBlockingQueue<MyTextEvent> forcedQueue = new PriorityBlockingQueue<MyTextEvent>();
     private boolean isFromServer = false;
+    private ChatClient owner;
 
     /*
     Konstruktøren sørger for at oprette en OjectOutputStream på socket'en.
     Denne bruges til at sende MyTextEvent-objekter, hentet fra den originale DocumentEventCapturer, ud
     på streamen.
      */
-    public OutputEventReplayer(DocumentEventCapturer dec, Socket socket, InputEventReplayer iep) {
+    public OutputEventReplayer(DocumentEventCapturer dec, Socket socket, InputEventReplayer iep, ChatClient owner) {
         this.dec = dec;
         this.socket = socket;
         this.iep = iep;
+        this.owner = owner;
         try {
             System.out.println("Outputeventreplayer about to create outputstream");
             oos = new ObjectOutputStream(this.socket.getOutputStream());
@@ -49,6 +51,13 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
      */
     @Override
     public void run() {
+        if (!isFromServer){
+            try {
+                oos.writeObject(new LocalhostEvent(-1, dec.getTimeStamp(), iep.getSender(), owner.getLocalhostAddress()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         boolean wasInterrupted = false;
         while (!wasInterrupted) {
             try {
@@ -68,7 +77,7 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
                     System.out.println("oos write to stream: " + mte.toString());
                     oos.writeObject(mte);
                     System.out.println("Adding to eventlist from outputreplayer");
-                    if (!iep.getEventList().contains(mte) && !(mte instanceof UpToDateEvent)) {
+                    if (!iep.getEventList().contains(mte) && !(mte instanceof Unlogable)) {
                         iep.getEventList().add(mte);
                     }
                 }

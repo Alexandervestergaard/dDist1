@@ -114,7 +114,7 @@ public class ChatClient implements Runnable {
         if(iepThread.isAlive()) {
             iepThread.interrupt();
         }
-        OutputEventReplayer oep = new OutputEventReplayer(clientDec, socket, null);
+        OutputEventReplayer oep = new OutputEventReplayer(clientDec, socket, null, this);
         InputEventReplayer iep = new InputEventReplayer(clientDec, clientArea, socket, oep, sender);
         //Sætter OutputEventReplayers InputEventReplayer så den kan tilføje elementer til loggen.
         oep.setIep(iep);
@@ -129,5 +129,9 @@ public class ChatClient implements Runnable {
         iepThread.start();
         iep.setOwner(owner);
         iep.setClient(this);
+    }
+
+    public String getLocalhostAddress(){
+        return localhostAddress;
     }
 }

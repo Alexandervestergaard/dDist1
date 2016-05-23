@@ -3,7 +3,7 @@ import java.util.ArrayList;
 /**
  * Created by Morten on 20-05-2016.
  */
-public class UpToDateEvent extends MyTextEvent {
+public class UpToDateEvent extends MyTextEvent implements Unlogable{
 
     private ArrayList<MyTextEvent> log;
 

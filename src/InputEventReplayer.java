@@ -40,6 +40,8 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
     private DistributedTextEditor owner;
     private ChatClient client;
     private String localhostAddress;
+    private PriorityBlockingQueue<MyTextEvent> waitingToGoToLogQueue = new PriorityBlockingQueue<MyTextEvent>();
+    private boolean interrupted = false;
 
     public InputEventReplayer(DocumentEventCapturer dec, JTextArea area, Socket socket, OutputEventReplayer oer, String sender) {
         this.dec = dec;
@@ -69,7 +71,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         EventQueThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                while (true) {
+                while (!interrupted) {
                     try {
                         ois = new ObjectInputStream(socket.getInputStream());
                         MyTextEvent mte;
@@ -81,6 +83,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                                 if (isFromServer && !(mte instanceof Unlogable)) {
                                     System.out.println("I AM FROM SERVER AND OUTPUTLIST SIZE: " + outputList.size());
                                     for (OutputEventReplayer oer : outputList) {
+                                        System.out.println("Adding to forcequeue");
                                         oer.forcedQueueAdd(mte);
                                     }
                                 }
@@ -89,12 +92,31 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
-                        return;
                     }
                 }
             }
         });
         EventQueThread.start();
+    }
+
+    public void startAddToLogThread(){
+        Thread addToLogThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (!interrupted) {
+                    try {
+                        MyTextEvent addToLogEvent = waitingToGoToLogQueue.take();
+                        while (eventHistoryActive) {
+                            Thread.sleep(100);
+                        }
+                        eventList.add(addToLogEvent);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        addToLogThread.start();
     }
 
     /*
@@ -103,8 +125,8 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
      * eller også bliver rollback metoden kaldt med eventets timstamp og eventet selv.
      */
     public void run() {
-        boolean wasInterrupted = false;
-        while (!wasInterrupted) {
+        startAddToLogThread();
+        while (!interrupted) {
             try {
                 /*
                 MyTextEvent-objekter hives ud af eventHistory, meget lig EventReplayer
@@ -126,7 +148,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                wasInterrupted = true;
+                interrupted = true;
             }
         }
         System.out.println("I'm the thread running the EventReplayer, now I die!");
@@ -290,7 +312,6 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             }
             owner.setIpaddressString(((ConnectToEvent) mte).getNewAddress());
             owner.connect();
-
         }
         else if (mte instanceof CreateServerEvent){
             owner.listen();
@@ -373,14 +394,20 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
     }
 
     public void addToLog(MyTextEvent mte) {
-        while (!eventHistoryActive) {}
         if (!(mte instanceof Unlogable) && !eventList.contains(mte)) {
-            eventList.add(mte);
-            System.out.println("log add");
+            waitingToGoToLogQueue.add(mte);
         }
     }
 
     public Socket getSocket(){
         return socket;
+    }
+
+    public void setEventList(ArrayList<MyTextEvent> newEventList){
+        this.eventList = newEventList;
+    }
+
+    public void stopThreads() {
+        interrupted = true;
     }
 }

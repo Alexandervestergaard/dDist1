@@ -190,6 +190,9 @@ public class ChatServer implements Runnable{
 
         //InputEventReplayer del
         InputEventReplayer iep = new InputEventReplayer(serverDec, serverArea, socket, oep, sender);
+        if(!updateList.isEmpty()) {
+            iep.setEventList(updateList.get(0).getEventList());
+        }
         updateList.add(iep);
         /*
          * Opdaterer outPutListen på alle InputEventReplayers (en for hver forbindelse) så de kender alle serverens
@@ -227,6 +230,7 @@ public class ChatServer implements Runnable{
             }
         }
         for (OutputEventReplayer remove : tempRemoveList){
+            System.out.println("Removing streams form lists");
             updateList.remove(remove.getIep());
             outputList.remove(remove);
         }
@@ -239,8 +243,12 @@ public class ChatServer implements Runnable{
     public void disconnect() {
         notifyClients();
         deregisterOnPort();
-        iepThread.interrupt();
-        oepThread.interrupt();
+        for (InputEventReplayer iep : updateList) {
+            iep = null;
+        }
+        for (OutputEventReplayer oep : outputList) {
+            oep = null;
+        }
         interrupted = true;
     }
 

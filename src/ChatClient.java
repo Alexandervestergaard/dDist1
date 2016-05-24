@@ -29,6 +29,8 @@ public class ChatClient implements Runnable {
     //Et ID som bliver sendt fra texteditoren
     private final String sender;
     private DistributedTextEditor owner;
+    private InputWriter clientWriter;
+    private Thread clientWriterThread;
 
     public ChatClient(String serverName, String portNumber, DocumentEventCapturer clientDec, JTextArea clientArea, String sender, DistributedTextEditor owner) {
         this.serverName = serverName;
@@ -38,6 +40,7 @@ public class ChatClient implements Runnable {
         this.sender = sender;
         this.owner = owner;
         clientDec.setServer(null);
+        this.clientWriter = new InputWriter(clientDec, clientArea, sender);
     }
 
     /**
@@ -115,7 +118,7 @@ public class ChatClient implements Runnable {
             iepThread.interrupt();
         }
         OutputEventReplayer oep = new OutputEventReplayer(clientDec, socket, null, this);
-        InputEventReplayer iep = new InputEventReplayer(clientDec, clientArea, socket, oep, sender);
+        InputEventReplayer iep = new InputEventReplayer(clientDec, clientArea, socket, oep, sender, clientWriter);
         //Sætter OutputEventReplayers InputEventReplayer så den kan tilføje elementer til loggen.
         oep.setIep(iep);
         oepThread = new Thread(oep);
@@ -129,6 +132,8 @@ public class ChatClient implements Runnable {
         iepThread.start();
         iep.setOwner(owner);
         iep.setClient(this);
+        this.clientWriterThread = new Thread(clientWriter);
+        clientWriterThread.start();
     }
 
     public String getLocalhostAddress(){

@@ -18,6 +18,7 @@ public class ChatServer implements Runnable{
     private DistributedTextEditor owner;
     private boolean interrupted = false;
     private ArrayList<MyTextEvent> startingList;
+    private Thread serverWriterThread;
 
     public ChatServer(DocumentEventCapturer serverDec, JTextArea serverArea, String sender, DistributedTextEditor owner/*, ArrayList<MyTextEvent> startingList*/) {
         this.serverDec = serverDec;
@@ -25,7 +26,9 @@ public class ChatServer implements Runnable{
         this.sender = sender;
         serverDec.setServer(this);
         this.owner = owner;
-
+        this.serverWriter = new InputWriter(serverDec, serverArea, sender);
+        serverWriterThread = new Thread(serverWriter);
+        serverWriterThread.start();
         printLocalHostAddress();
         //this.startingList = startingList;
     }
@@ -56,7 +59,7 @@ public class ChatServer implements Runnable{
     //Et ID sombliver givet fra teksteditoren
     private final String sender;
     private ArrayList<MyTextEvent> serverLog = new ArrayList<MyTextEvent>();
-
+    private InputWriter serverWriter;
 
     /**
      *
@@ -181,14 +184,14 @@ public class ChatServer implements Runnable{
         System.out.println("updateList-size: " + updateList.size());
         if (!updateList.isEmpty()) {
             System.out.println("adding logevent");
-            oep.forcedQueueAdd(new UpToDateEvent(-1, serverDec.getTimeStamp(), sender, updateList.get(0).getEventList()));
+            oep.forcedQueueAdd(new UpToDateEvent(-1, serverDec.getTimeStamp(), sender, serverWriter.getEventList()));
         }
         else {
             //oep.forcedQueueAdd(new UpToDateEvent(-1, serverDec.getTimeStamp(), sender, startingList));
         }
 
         //InputEventReplayer del
-        InputEventReplayer iep = new InputEventReplayer(serverDec, serverArea, socket, oep, sender);
+        InputEventReplayer iep = new InputEventReplayer(serverDec, serverArea, socket, oep, sender, serverWriter);
         updateList.add(iep);
         for (InputEventReplayer update : updateList) {
             iep.setFromServer(true, outputList);
@@ -220,14 +223,14 @@ public class ChatServer implements Runnable{
         int maxLogLength = 0;
         ArrayList<InputEventReplayer> tempRemoveList = new ArrayList<InputEventReplayer>();
         for (InputEventReplayer i : updateList){
-            maxLogLength = Math.max(i.getEventList().size(), maxLogLength);
+            //maxLogLength = Math.max(i.getEventList().size(), maxLogLength);
         }
         System.out.println("Max length: " + maxLogLength);
         for (InputEventReplayer i2 : updateList) {
-            System.out.println("Individual size: " + i2.getEventList().size());
-            if (i2.getEventList().size() < maxLogLength - 1) {
-                tempRemoveList.add(i2);
-            }
+            //System.out.println("Individual size: " + i2.getEventList().size());
+            //if (i2.getEventList().size() < maxLogLength - 1) {
+              //  tempRemoveList.add(i2);
+            //}
         }
         for (InputEventReplayer remove : tempRemoveList){
             outputList.remove(remove.getOer());

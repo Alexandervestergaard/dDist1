@@ -180,7 +180,7 @@ public class ChatServer implements Runnable{
          * client bliver opdateret.
          */
 
-        //removeDeadInput();
+        removeDeadInput();
         System.out.println("updateList-size: " + updateList.size());
         if (!updateList.isEmpty()) {
             System.out.println("adding logevent");
@@ -220,21 +220,12 @@ public class ChatServer implements Runnable{
 
     private void removeDeadInput() {
         System.out.println("Before size: " + updateList.size());
-        int maxLogLength = 0;
         ArrayList<InputEventReplayer> tempRemoveList = new ArrayList<InputEventReplayer>();
         for (InputEventReplayer i : updateList){
-            //maxLogLength = Math.max(i.getEventList().size(), maxLogLength);
-        }
-        System.out.println("Max length: " + maxLogLength);
-        for (InputEventReplayer i2 : updateList) {
-            //System.out.println("Individual size: " + i2.getEventList().size());
-            //if (i2.getEventList().size() < maxLogLength - 1) {
-              //  tempRemoveList.add(i2);
-            //}
-        }
-        for (InputEventReplayer remove : tempRemoveList){
-            outputList.remove(remove.getOer());
-            updateList.remove(remove);
+            if (i.getSocket().isClosed()){
+                outputList.remove(i.getOer());
+                updateList.remove(i);
+            }
         }
         System.out.println("After size: " + updateList.size());
     }

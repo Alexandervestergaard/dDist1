@@ -43,10 +43,10 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
     }
 
     public void run() {
-        while (true) {
-            try {
-                ois = new ObjectInputStream(socket.getInputStream());
-                MyTextEvent mte;
+        try{
+            ois = new ObjectInputStream(socket.getInputStream());
+            MyTextEvent mte;
+            while (true) {
                 while ((mte = (MyTextEvent) ois.readObject()) != null) {
                     System.out.println("my id: " + sender + " mte id: " + mte.getSender() + " says EventQueueThread and: " + (mte.getSender() != sender));
                     if (!mte.getSender().equals(sender)) {
@@ -55,7 +55,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                             inputWriter.addToQueue(mte);
                             System.out.println("added mte to queue");
                         }
-                        if (isFromServer) {
+                        if (isFromServer && !(mte instanceof Unlogable)) {
                             for (OutputEventReplayer oer : outputList) {
                                 oer.forcedQueueAdd(mte);
                             }
@@ -63,10 +63,10 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                     }
                     mte = null;
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-                return;
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
         }
     }
 
@@ -100,5 +100,9 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
 
     public void addToLog(MyTextEvent mte){
         inputWriter.addToLog(mte);
+    }
+
+    public Socket getSocket(){
+        return socket;
     }
 }

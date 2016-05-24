@@ -209,14 +209,14 @@ public class InputWriter implements Runnable {
          * loggen når den er færdig.
          */
         else  if(mte instanceof UpToDateEvent){
-            //eventList.addAll(((UpToDateEvent) mte).getLog());
-            eventList = ((UpToDateEvent) mte).getLog();
             eventList.remove(mte);
+            eventList = ((UpToDateEvent) mte).getLog();
             /*
             MyTextEvent tempEvent = new TextInsertEvent(0, "", 0, sender);
             rollback(0, tempEvent);
             eventList.remove(tempEvent);*/
             area.setText("");
+
             System.out.println("log length: " + eventList.size());
             System.out.println(eventList.toString());
             for (MyTextEvent m : eventList){
@@ -281,7 +281,7 @@ public class InputWriter implements Runnable {
     }
 
     public void addToLog(MyTextEvent mte) {
-        if (!eventList.contains(mte) && eventHistoryActive){
+        if (!eventList.contains(mte) && eventHistoryActive && !(mte instanceof Unlogable)){
             eventList.add(mte);
         }
     }

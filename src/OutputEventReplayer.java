@@ -75,13 +75,11 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
                     mte = (MyTextEvent) dec.take();
                 }
 
-                if ((mte != null) && eventListActive) {
+                if ((mte != null)) {
                     System.out.println("oos write to stream: " + mte.toString());
                     oos.writeObject(mte);
                     System.out.println("Adding " + mte + " to eventlist from outputreplayer");
-                    if (!iep.getEventList().contains(mte) && !(mte instanceof Unlogable)) {
-                        iep.addToLog(mte);
-                    }
+                    iep.addToLog(mte);
                 }
 
             } catch (Exception e) {
@@ -114,4 +112,8 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
     public void setIsFromServer(boolean isFromServer){
         this.isFromServer = isFromServer;
     }
+
+    public ObjectOutputStream getOos(){return oos;}
+
+    public InputEventReplayer getIep(){return iep;}
 }

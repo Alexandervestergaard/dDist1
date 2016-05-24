@@ -177,10 +177,11 @@ public class ChatServer implements Runnable{
          * client bliver opdateret.
          */
 
-        //removeDeadInput();
+        removeDeadInput();
         System.out.println("updateList-size: " + updateList.size());
         if (!updateList.isEmpty()) {
             System.out.println("adding logevent");
+            System.out.println("Getting log og size: " + updateList.get(0).getEventList().size());
             oep.forcedQueueAdd(new UpToDateEvent(-1, serverDec.getTimeStamp(), sender, updateList.get(0).getEventList()));
         }
         else {
@@ -190,8 +191,12 @@ public class ChatServer implements Runnable{
         //InputEventReplayer del
         InputEventReplayer iep = new InputEventReplayer(serverDec, serverArea, socket, oep, sender);
         updateList.add(iep);
-        for (InputEventReplayer update : updateList) {
-            iep.setFromServer(true, outputList);
+        /*
+         * Opdaterer outPutListen på alle InputEventReplayers (en for hver forbindelse) så de kender alle serverens
+         * OutputEventReplayers og kan sende beskeder til alle clients.
+         */
+        for (InputEventReplayer update : updateList){
+            update.setFromServer(true, outputList);
         }
 
         //Sætter OutputEventReplayers InputEventReplayer så den kan tilføje elementer til loggen.
@@ -206,32 +211,24 @@ public class ChatServer implements Runnable{
         }
         iepThread.start();
 
-        /*
-         * Opdaterer outPutListen på alle InputEventReplayers ( en for hver forbindelse) så de kender alle serverens
-         * OutputEventReplayers og kan sende beskeder til alle clients.
-         */
-        for (InputEventReplayer update : updateList){
-            update.setFromServer(true, outputList);
-        }
+
     }
 
     private void removeDeadInput() {
         System.out.println("Before size: " + updateList.size());
         int maxLogLength = 0;
-        ArrayList<InputEventReplayer> tempRemoveList = new ArrayList<InputEventReplayer>();
-        for (InputEventReplayer i : updateList){
-            maxLogLength = Math.max(i.getEventList().size(), maxLogLength);
-        }
-        System.out.println("Max length: " + maxLogLength);
-        for (InputEventReplayer i2 : updateList) {
-            System.out.println("Individual size: " + i2.getEventList().size());
-            if (i2.getEventList().size() < maxLogLength - 1) {
-                tempRemoveList.add(i2);
+        ArrayList<OutputEventReplayer> tempRemoveList = new ArrayList<>();
+        for (OutputEventReplayer o : outputList){
+            try {
+                o.getOos().writeObject(new TestAliveEvent(-1, serverDec.getTimeStamp(), sender));
+            } catch (Exception e) {
+                tempRemoveList.add(o);
+                e.printStackTrace();
             }
         }
-        for (InputEventReplayer remove : tempRemoveList){
-            outputList.remove(remove.getOer());
-            updateList.remove(remove);
+        for (OutputEventReplayer remove : tempRemoveList){
+            updateList.remove(remove.getIep());
+            outputList.remove(remove);
         }
         System.out.println("After size: " + updateList.size());
     }
@@ -248,7 +245,7 @@ public class ChatServer implements Runnable{
     }
 
     private void notifyClients() {
-        //removeDeadInput();
+        removeDeadInput();
         if (!outputList.isEmpty()){
             outputList.get(0).forcedQueueAdd(new CreateServerEvent(-1, serverDec.getTimeStamp(), sender));
         }

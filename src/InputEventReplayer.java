@@ -30,7 +30,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
     private PriorityBlockingQueue<MyTextEvent> eventHistory;
     private Thread EventQueThread = new Thread();
     private OutputEventReplayer oer;
-    private ArrayList<MyTextEvent> eventList = new ArrayList<MyTextEvent>();
+    private ArrayList<MyTextEvent> eventList;
     private ReentrantLock rollBackLock = new ReentrantLock();
     private Comparator<? super MyTextEvent> mteSorter;
     private boolean eventHistoryActive = true;
@@ -48,6 +48,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         this.sender = sender;
         eventHistory = new PriorityBlockingQueue<MyTextEvent>();
         this.oer = oer;
+        this.eventList = new ArrayList<MyTextEvent>();
         startEventQueThread();
         mteSorter = new Comparator<MyTextEvent>() {
             @Override
@@ -77,7 +78,8 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                             if (!mte.getSender().equals(sender)) {
                                 System.out.println("mte being added to event queue: " + mte);
                                 eventHistory.add(mte);
-                                if (isFromServer) {
+                                if (isFromServer && !(mte instanceof Unlogable)) {
+                                    System.out.println("I AM FROM SERVER AND OUTPUTLIST SIZE: " + outputList.size());
                                     for (OutputEventReplayer oer : outputList) {
                                         oer.forcedQueueAdd(mte);
                                     }
@@ -101,7 +103,6 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
      * eller også bliver rollback metoden kaldt med eventets timstamp og eventet selv.
      */
     public void run() {
-        boolean test = true;
         boolean wasInterrupted = false;
         while (!wasInterrupted) {
             try {
@@ -109,7 +110,6 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                 MyTextEvent-objekter hives ud af eventHistory, meget lig EventReplayer
                  */
                 if (eventHistoryActive) {
-                    test = true;
                     final MyTextEvent mte = eventHistory.take();
                     System.out.println("my id: " + sender + " mte id: " + mte.getSender());
                     if (mte.getTimeStamp() >= dec.getTimeStamp()) {
@@ -124,11 +124,6 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                         rollback(mte.getTimeStamp(), mte);
                     }
                 }
-                if (test) {
-                    System.out.print("turned on: " + eventHistoryActive);
-                    System.out.println(eventList.toString());
-                }
-                test = false;
             } catch (Exception e) {
                 e.printStackTrace();
                 wasInterrupted = true;
@@ -249,7 +244,8 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         if (mte instanceof TextInsertEvent) {
             final TextInsertEvent tie = (TextInsertEvent)mte;
             try {
-                System.out.println("tie in event queue, trying to write to area2 ");
+                System.out.println("tie in event queue, trying to write to area");
+                System.out.println("offset: " + mte.getOffset());
                 turnOff();
                 if (tie.getOffset() <= area.getText().length()) {
                     area.insert(tie.getText(), tie.getOffset());
@@ -272,12 +268,11 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
          * loggen når den er færdig.
          */
         else  if(mte instanceof UpToDateEvent){
-            //eventList.addAll(((UpToDateEvent) mte).getLog());
             eventList = ((UpToDateEvent) mte).getLog();
-            //eventList.remove(mte);
             area.setText("");
             System.out.println("log length: " + eventList.size());
             System.out.println(eventList.toString());
+            eventList.sort(mteSorter);
             for (MyTextEvent m : eventList){
                 doMTE(m);
                 System.out.println("log length: " + eventList.size());
@@ -378,9 +373,14 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
     }
 
     public void addToLog(MyTextEvent mte) {
-        if (eventHistoryActive) {
+        while (!eventHistoryActive) {}
+        if (!(mte instanceof Unlogable) && !eventList.contains(mte)) {
             eventList.add(mte);
             System.out.println("log add");
         }
+    }
+
+    public Socket getSocket(){
+        return socket;
     }
 }

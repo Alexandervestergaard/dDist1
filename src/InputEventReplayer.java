@@ -109,10 +109,12 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                 while (!interrupted) {
                     try {
                         MyTextEvent addToLogEvent = waitingToGoToLogQueue.take();
-                        while (eventHistoryActive) {
-                            Thread.sleep(100);
+                        while (!eventHistoryActive) {
+                            //Thread.sleep(100);
                         }
-                        eventList.add(addToLogEvent);
+                        if(!eventList.contains(waitingToGoToLogQueue) && !(waitingToGoToLogQueue instanceof Unlogable)) {
+                            eventList.add(addToLogEvent);
+                        }
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -173,7 +175,6 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         try {
             turnOff();
             ArrayList<MyTextEvent> tempList = new ArrayList<MyTextEvent>();
-            tempList.add(rollMTE);
 
             // Loop der printer indholdet af loggen
             System.out.println("list:");
@@ -190,17 +191,17 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
 
             // Loop der fortryder events
             Collections.reverse(eventList);
-            for (MyTextEvent undo : eventList) {
-                if (undo.getTimeStamp() >= rollbackTo) {
-                    //waitForOneSecond();
-
-                    tempList.add(undo);
+            for (MyTextEvent find : eventList) {
+                if (find.getTimeStamp() >= rollbackTo) {
+                    tempList.add(find);
                 }
             }
 
-            for (MyTextEvent undo2 : tempList){
-                undoEvent(undo2);
+            for (MyTextEvent undo : tempList){
+                undoEvent(undo);
             }
+
+            tempList.add(rollMTE);
             eventList.sort(mteSorter);
             tempList.sort(mteSorter);
 
@@ -211,7 +212,6 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             // Loope der printer og udfører indholdet af tempList
             System.out.println("tempList: ");
             for (MyTextEvent m : tempList){
-                //waitForOneSecond();
                 doMTE(m);
                 if (m instanceof TextInsertEvent) {
                     System.out.print(((TextInsertEvent) m).getText() + ", ");
@@ -225,10 +225,12 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             turnOn();
         }
         catch (Exception e){
-            if (!eventList.contains(rollMTE) && !(rollMTE instanceof Unlogable)) {
+            turnOn();
+            e.printStackTrace();
+            /*if (!eventList.contains(rollMTE) && !(rollMTE instanceof Unlogable)) {
                 eventList.add(rollMTE);
             }
-            rollback(rollbackTo, new TestAliveEvent(-1, dec.getTimeStamp(), sender));
+            rollback(rollbackTo, new TestAliveEvent(-1, dec.getTimeStamp(), sender))*/
         }
         finally {
             rollBackLock.unlock();
@@ -278,6 +280,15 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             try {
                 System.out.println("tie in event queue, trying to write to area");
                 System.out.println("offset: " + mte.getOffset());
+                for (MyTextEvent q: eventList){
+                    if (q instanceof TextInsertEvent) {
+                        System.out.print(((TextInsertEvent) q).getText() + ", ");
+                    }
+                    else if (q instanceof TextRemoveEvent){
+                        System.out.print("remove" + ((TextRemoveEvent) q).getLength() + ", ");
+                    }
+                }
+                System.out.println();
                 turnOff();
                 if (tie.getOffset() <= area.getText().length()) {
                     area.insert(tie.getText(), tie.getOffset());
@@ -338,6 +349,9 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             if (tre.getOffset() >= 0 && (tre.getOffset()+tre.getLength()) <= area.getText().length()) {
                 tre.setRemovedText(area.getText(tre.getOffset(), tre.getLength()));
                 area.replaceRange(null, tre.getOffset(), tre.getOffset() + tre.getLength());
+            }
+            else if (tre.getOffset() >= 0 && tre.getOffset() <= area.getText().length()){
+                area.replaceRange(null, tre.getOffset(), area.getText().length());
             }
             turnOn();
         }

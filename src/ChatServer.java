@@ -185,6 +185,7 @@ public class ChatServer implements Runnable{
             oep.forcedQueueAdd(new UpToDateEvent(-1, serverDec.getTimeStamp(), sender, updateList.get(0).getEventList()));
         }
         else {
+            oep.forcedQueueAdd(new TextInsertEvent(0,serverArea.getText(),serverDec.getTimeStamp(),sender));
             //oep.forcedQueueAdd(new UpToDateEvent(-1, serverDec.getTimeStamp(), sender, startingList));
         }
 

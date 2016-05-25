@@ -175,11 +175,9 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             ArrayList<MyTextEvent> tempList = new ArrayList<MyTextEvent>();
             tempList.add(rollMTE);
 
-            ArrayList<MyTextEvent> rollbackList = eventList;
-
             // Loop der printer indholdet af loggen
             System.out.println("list:");
-            for (MyTextEvent q: rollbackList){
+            for (MyTextEvent q: eventList){
                 if (q instanceof TextInsertEvent) {
                     System.out.print(((TextInsertEvent) q).getText() + ", ");
                 }
@@ -191,13 +189,17 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             System.out.println("Log done.");
 
             // Loop der fortryder events
-            Collections.reverse(rollbackList);
+            Collections.reverse(eventList);
             for (MyTextEvent undo : eventList) {
                 if (undo.getTimeStamp() >= rollbackTo) {
                     //waitForOneSecond();
-                    undoEvent(undo);
+
                     tempList.add(undo);
                 }
+            }
+
+            for (MyTextEvent undo2 : tempList){
+                undoEvent(undo2);
             }
             eventList.sort(mteSorter);
             tempList.sort(mteSorter);
@@ -223,7 +225,10 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             turnOn();
         }
         catch (Exception e){
-            e.printStackTrace();
+            if (!eventList.contains(rollMTE) && !(rollMTE instanceof Unlogable)) {
+                eventList.add(rollMTE);
+            }
+            rollback(rollbackTo, new TestAliveEvent(-1, dec.getTimeStamp(), sender));
         }
         finally {
             rollBackLock.unlock();

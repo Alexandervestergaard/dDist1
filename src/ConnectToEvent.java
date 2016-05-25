@@ -1,7 +1,9 @@
+import java.io.Serializable;
+
 /**
  * Created by Morten on 23-05-2016.
  */
-public class ConnectToEvent extends MyTextEvent implements Unlogable{
+public class ConnectToEvent extends MyTextEvent implements Unlogable, Serializable{
 
     private String newAddress;
 

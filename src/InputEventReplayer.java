@@ -71,11 +71,13 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         EventQueThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                while (!interrupted) {
-                    try {
+                try {
+                    if (!socket.isClosed()) {
                         ois = new ObjectInputStream(socket.getInputStream());
+                    }
+                    while (!interrupted) {
                         MyTextEvent mte;
-                        while ((mte = (MyTextEvent) ois.readObject()) != null) {
+                        while (ois != null && (mte = (MyTextEvent) ois.readObject()) != null) {
                             System.out.println("my id: " + sender + " mte id: " + mte.getSender() + " says EventQueueThread and: " + (mte.getSender() != sender));
                             if (!mte.getSender().equals(sender)) {
                                 System.out.println("mte being added to event queue: " + mte);
@@ -90,9 +92,10 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                             }
                             mte = null;
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return;
                 }
             }
         });
@@ -172,9 +175,11 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             ArrayList<MyTextEvent> tempList = new ArrayList<MyTextEvent>();
             tempList.add(rollMTE);
 
+            ArrayList<MyTextEvent> rollbackList = eventList;
+
             // Loop der printer indholdet af loggen
             System.out.println("list:");
-            for (MyTextEvent q: eventList){
+            for (MyTextEvent q: rollbackList){
                 if (q instanceof TextInsertEvent) {
                     System.out.print(((TextInsertEvent) q).getText() + ", ");
                 }
@@ -186,7 +191,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             System.out.println("Log done.");
 
             // Loop der fortryder events
-            Collections.reverse(eventList);
+            Collections.reverse(rollbackList);
             for (MyTextEvent undo : eventList) {
                 if (undo.getTimeStamp() >= rollbackTo) {
                     //waitForOneSecond();

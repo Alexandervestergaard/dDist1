@@ -75,23 +75,21 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                     if (!socket.isClosed()) {
                         ois = new ObjectInputStream(socket.getInputStream());
                     }
-                    while (!interrupted) {
-                        MyTextEvent mte;
-                        while (ois != null && (mte = (MyTextEvent) ois.readObject()) != null) {
-                            System.out.println("my id: " + sender + " mte id: " + mte.getSender() + " says EventQueueThread and: " + (mte.getSender() != sender));
-                            if (!mte.getSender().equals(sender)) {
-                                System.out.println("mte being added to event queue: " + mte);
-                                eventHistory.add(mte);
-                                if (isFromServer && !(mte instanceof Unlogable)) {
-                                    System.out.println("I AM FROM SERVER AND OUTPUTLIST SIZE: " + outputList.size());
-                                    for (OutputEventReplayer oer : outputList) {
-                                        System.out.println("Adding to forcequeue");
-                                        oer.forcedQueueAdd(mte);
-                                    }
+                    MyTextEvent mte;
+                    while (!interrupted && socket != null && !socket.isClosed() && ois != null && (mte = (MyTextEvent) ois.readObject()) != null) {
+                        System.out.println("my id: " + sender + " mte id: " + mte.getSender() + " says EventQueueThread and: " + (mte.getSender() != sender));
+                        if (!mte.getSender().equals(sender)) {
+                            System.out.println("mte being added to event queue: " + mte);
+                            eventHistory.add(mte);
+                            if (isFromServer && !(mte instanceof Unlogable)) {
+                                System.out.println("I AM FROM SERVER AND OUTPUTLIST SIZE: " + outputList.size());
+                                for (OutputEventReplayer oer : outputList) {
+                                    System.out.println("Adding to forcequeue");
+                                    oer.forcedQueueAdd(mte);
                                 }
                             }
-                            mte = null;
                         }
+                        mte = null;
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -325,6 +323,11 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             localhostAddress = ((LocalhostEvent) mte).getLocalhostAddress();
         }
         else if (mte instanceof ConnectToEvent){
+            try {
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             System.out.println("TRYING TO CONNECT IN 2!!!");
             try {
                 Thread.sleep(2000);
@@ -335,6 +338,11 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             owner.connect();
         }
         else if (mte instanceof CreateServerEvent){
+            try {
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             owner.listen();
         }
     }
@@ -433,5 +441,13 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
 
     public void stopThreads() {
         interrupted = true;
+    }
+
+    public void close(){
+        try {
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -264,6 +264,15 @@ public class ChatServer implements Runnable{
             System.out.println("sending connectevent");
             outputList.get(i).forcedQueueAdd(new ConnectToEvent(-1, serverDec.getTimeStamp(), sender, connectTo));
         }
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        for (OutputEventReplayer close : outputList){
+            close.getIep().close();
+            close.close();
+        }
     }
 
     public ArrayList<OutputEventReplayer> getOutputList(){

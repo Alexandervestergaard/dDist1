@@ -116,4 +116,12 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
     public ObjectOutputStream getOos(){return oos;}
 
     public InputEventReplayer getIep(){return iep;}
+
+    public void close(){
+        try {
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

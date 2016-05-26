@@ -109,10 +109,11 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                 while (!interrupted) {
                     try {
                         MyTextEvent addToLogEvent = waitingToGoToLogQueue.take();
-                        while (eventHistoryActive) {
-                            Thread.sleep(100);
+                        while (!eventHistoryActive) {
                         }
-                        eventList.add(addToLogEvent);
+                        if (!(addToLogEvent instanceof Unlogable) && !eventList.contains(waitingToGoToLogQueue)) {
+                            eventList.add(addToLogEvent);
+                        }
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -173,7 +174,6 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         try {
             turnOff();
             ArrayList<MyTextEvent> tempList = new ArrayList<MyTextEvent>();
-            tempList.add(rollMTE);
 
             ArrayList<MyTextEvent> rollbackList = eventList;
 
@@ -199,12 +199,13 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                     tempList.add(undo);
                 }
             }
-            eventList.sort(mteSorter);
+            tempList.add(rollMTE);
             tempList.sort(mteSorter);
 
             if (!eventList.contains(rollMTE) && !(rollMTE instanceof Unlogable)) {
                 eventList.add(rollMTE);
             }
+            eventList.sort(mteSorter);
 
             // Loope der printer og udfører indholdet af tempList
             System.out.println("tempList: ");

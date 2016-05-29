@@ -75,21 +75,23 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                     if (!socket.isClosed()) {
                         ois = new ObjectInputStream(socket.getInputStream());
                     }
-                    MyTextEvent mte;
-                    while (!interrupted && socket != null && !socket.isClosed() && ois != null && (mte = (MyTextEvent) ois.readObject()) != null) {
-                        System.out.println("my id: " + sender + " mte id: " + mte.getSender() + " says EventQueueThread and: " + (mte.getSender() != sender));
-                        if (!mte.getSender().equals(sender)) {
-                            System.out.println("mte being added to event queue: " + mte);
-                            eventHistory.add(mte);
-                            if (isFromServer && !(mte instanceof Unlogable)) {
-                                System.out.println("I AM FROM SERVER AND OUTPUTLIST SIZE: " + outputList.size());
-                                for (OutputEventReplayer oer : outputList) {
-                                    System.out.println("Adding to forcequeue");
-                                    oer.forcedQueueAdd(mte);
+                    while (!interrupted) {
+                        MyTextEvent mte;
+                        while (ois != null && (mte = (MyTextEvent) ois.readObject()) != null) {
+                            System.out.println("my id: " + sender + " mte id: " + mte.getSender() + " says EventQueueThread and: " + (mte.getSender() != sender));
+                            if (!mte.getSender().equals(sender)) {
+                                System.out.println("mte being added to event queue: " + mte);
+                                eventHistory.add(mte);
+                                if (isFromServer && !(mte instanceof Unlogable)) {
+                                    System.out.println("I AM FROM SERVER AND OUTPUTLIST SIZE: " + outputList.size());
+                                    for (OutputEventReplayer oer : outputList) {
+                                        System.out.println("Adding to forcequeue");
+                                        oer.forcedQueueAdd(mte);
+                                    }
                                 }
                             }
+                            mte = null;
                         }
-                        mte = null;
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -108,9 +110,8 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                     try {
                         MyTextEvent addToLogEvent = waitingToGoToLogQueue.take();
                         while (!eventHistoryActive) {
-                            //Thread.sleep(100);
                         }
-                        if(!eventList.contains(waitingToGoToLogQueue) && !(waitingToGoToLogQueue instanceof Unlogable)) {
+                        if (!(addToLogEvent instanceof Unlogable) && !eventList.contains(waitingToGoToLogQueue)) {
                             eventList.add(addToLogEvent);
                         }
                     } catch (InterruptedException e) {
@@ -174,9 +175,11 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             turnOff();
             ArrayList<MyTextEvent> tempList = new ArrayList<MyTextEvent>();
 
+            ArrayList<MyTextEvent> rollbackList = eventList;
+
             // Loop der printer indholdet af loggen
             System.out.println("list:");
-            for (MyTextEvent q: eventList){
+            for (MyTextEvent q: rollbackList){
                 if (q instanceof TextInsertEvent) {
                     System.out.print(((TextInsertEvent) q).getText() + ", ");
                 }
@@ -188,28 +191,26 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             System.out.println("Log done.");
 
             // Loop der fortryder events
-            Collections.reverse(eventList);
-            for (MyTextEvent find : eventList) {
-                if (find.getTimeStamp() >= rollbackTo) {
-                    tempList.add(find);
+            Collections.reverse(rollbackList);
+            for (MyTextEvent undo : eventList) {
+                if (undo.getTimeStamp() >= rollbackTo) {
+                    //waitForOneSecond();
+                    undoEvent(undo);
+                    tempList.add(undo);
                 }
             }
-
-            for (MyTextEvent undo : tempList){
-                undoEvent(undo);
-            }
-
             tempList.add(rollMTE);
-            eventList.sort(mteSorter);
             tempList.sort(mteSorter);
 
             if (!eventList.contains(rollMTE) && !(rollMTE instanceof Unlogable)) {
                 eventList.add(rollMTE);
             }
+            eventList.sort(mteSorter);
 
             // Loope der printer og udfører indholdet af tempList
             System.out.println("tempList: ");
             for (MyTextEvent m : tempList){
+                //waitForOneSecond();
                 doMTE(m);
                 if (m instanceof TextInsertEvent) {
                     System.out.print(((TextInsertEvent) m).getText() + ", ");
@@ -223,12 +224,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             turnOn();
         }
         catch (Exception e){
-            turnOn();
             e.printStackTrace();
-            /*if (!eventList.contains(rollMTE) && !(rollMTE instanceof Unlogable)) {
-                eventList.add(rollMTE);
-            }
-            rollback(rollbackTo, new TestAliveEvent(-1, dec.getTimeStamp(), sender))*/
         }
         finally {
             rollBackLock.unlock();
@@ -278,15 +274,6 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             try {
                 System.out.println("tie in event queue, trying to write to area");
                 System.out.println("offset: " + mte.getOffset());
-                for (MyTextEvent q: eventList){
-                    if (q instanceof TextInsertEvent) {
-                        System.out.print(((TextInsertEvent) q).getText() + ", ");
-                    }
-                    else if (q instanceof TextRemoveEvent){
-                        System.out.print("remove" + ((TextRemoveEvent) q).getLength() + ", ");
-                    }
-                }
-                System.out.println();
                 turnOff();
                 if (tie.getOffset() <= area.getText().length()) {
                     area.insert(tie.getText(), tie.getOffset());
@@ -323,11 +310,6 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             localhostAddress = ((LocalhostEvent) mte).getLocalhostAddress();
         }
         else if (mte instanceof ConnectToEvent){
-            try {
-                socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
             System.out.println("TRYING TO CONNECT IN 2!!!");
             try {
                 Thread.sleep(2000);
@@ -338,11 +320,6 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             owner.connect();
         }
         else if (mte instanceof CreateServerEvent){
-            try {
-                socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
             owner.listen();
         }
     }
@@ -357,9 +334,6 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             if (tre.getOffset() >= 0 && (tre.getOffset()+tre.getLength()) <= area.getText().length()) {
                 tre.setRemovedText(area.getText(tre.getOffset(), tre.getLength()));
                 area.replaceRange(null, tre.getOffset(), tre.getOffset() + tre.getLength());
-            }
-            else if (tre.getOffset() >= 0 && tre.getOffset() <= area.getText().length()){
-                area.replaceRange(null, tre.getOffset(), area.getText().length());
             }
             turnOn();
         }
@@ -441,13 +415,5 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
 
     public void stopThreads() {
         interrupted = true;
-    }
-
-    public void close(){
-        try {
-            socket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 }

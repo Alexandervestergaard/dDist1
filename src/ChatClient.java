@@ -31,6 +31,10 @@ public class ChatClient implements Runnable {
     private DistributedTextEditor owner;
     private InputEventReplayer iep;
 
+    /*
+     * sender parameteren er et id som bliver lavet når man starter programmet.
+     * owner parameteren er den DistributedTextEditor som laver clienten.
+     */
     public ChatClient(String serverName, String portNumber, DocumentEventCapturer clientDec, JTextArea clientArea, String sender, DistributedTextEditor owner) {
         this.serverName = serverName;
         this.portNumber = Integer.parseInt(portNumber);
@@ -72,7 +76,7 @@ public class ChatClient implements Runnable {
     }
 
     /*
-     * Modified code from DEmoClient. Sets up a connection with the server by creating the streams that will be used to communicate.
+     * Modified code from DemoClient. Sets up a connection with the server by creating the streams that will be used to communicate.
      * Also sets up the socket.
      */
     public void run() {
@@ -90,8 +94,7 @@ public class ChatClient implements Runnable {
     }
 
     /*
-     * An attempt at disconnectiing. Closes the socket, stops teh threads with the streams and clears the variables.
-     * Works when both client and server disconnects.
+     * Stopper de igangværende tråde og lukker for socket
      */
     public void disconnect(){
         try {
@@ -107,7 +110,8 @@ public class ChatClient implements Runnable {
     }
 
     /*
-     * sets up Replayers and Threads to run them. The Replayers sends and reads textevents to communicate with the client.
+     * Laver de objeckter og tråde som står for kommunikationen. Outputeventreplayer sender beskeder ud og opdaterer
+     * loggen i InputeventReplayer. InputEventReplayer tager imod beskeder og skriver dem ind.
      */
     private void createIOStreams(Socket socket, DocumentEventCapturer clientDec, JTextArea clientArea) {
         if(oepThread.isAlive()) {

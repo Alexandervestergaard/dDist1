@@ -69,6 +69,8 @@ public class DocumentEventCapturer extends DocumentFilter {
 
     /*
      * Tilføjer insertEvents til den rigtige stream som afhænger af om dette objekt er lavet fra client eller server.
+     * Hvis Dette objekt tilhører en server tager OutputEventReplayers ikke direkte fra listen, men i stedet bliver
+     * alle events indsat i deres kø. Dette er for at undgå raceconditions i take().
      */
     private void addInsertToStream(int offset, String str) {
         /*
@@ -112,6 +114,8 @@ public class DocumentEventCapturer extends DocumentFilter {
 
     /*
      * Tilføjer insertEvents til den rigtige stream som afhænger af om dette objekt er lavet fra client eller server.
+     * Hvis Dette objekt tilhører en server tager OutputEventReplayers ikke direkte fra listen, men i stedet bliver
+     * alle events indsat i deres kø. Dette er for at undgå raceconditions i take().
      */
     private void addRemoveToStream(int offset, int length) {
         /*
@@ -142,6 +146,10 @@ public class DocumentEventCapturer extends DocumentFilter {
         this.timeStamp = timeStamp;
     }
 
+    /*
+     * En metode der bliver brugt til at sætte om dette objekt tilhører en server eller client. Hvis det er fra en server
+     * har den også en liste over hvilke OutputEventReplayers der skal have beskederne.
+     */
     public void setServer(ChatServer server) {
         if (server != null) {
             this.server = server;
@@ -155,7 +163,7 @@ public class DocumentEventCapturer extends DocumentFilter {
 
     /*
      * Sætter startd som er en variable der bestemme om events skal tilføjes til queues. Hvis man hverken har
-      * kaldt listen eller connect skal input ikek registreres.
+     * kaldt listen eller connect skal input ikke registreres.
      */
     public void setStarted(boolean started){
         this.started = started;

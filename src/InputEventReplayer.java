@@ -14,8 +14,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  *
  * Takes the event recorded by the DocumentEventCapturer and replays
- * them in a JTextArea. The delay of 1 sec is only to make the individual
- * steps in the reply visible to humans.
+ * them in a JTextArea.
  *
  * @author Jesper Buus Nielsen
  *
@@ -43,6 +42,10 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
     private PriorityBlockingQueue<MyTextEvent> waitingToGoToLogQueue = new PriorityBlockingQueue<MyTextEvent>();
     private boolean interrupted = false;
 
+    /*
+     * sender variablen er et id som man får fra DistributedTextEditor.
+     * mteSorter er en sorter der skal bruges til at sortere MyTextEvents i rollback.
+     */
     public InputEventReplayer(DocumentEventCapturer dec, JTextArea area, Socket socket, OutputEventReplayer oer, String sender) {
         this.dec = dec;
         this.area = area;
@@ -62,7 +65,10 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
     }
 
     /*
-    En tråd bruges til løbende at hive objekter ud fra streamen, og gemme dem i eventHistory-køen
+     * En tråd bruges til løbende at hive objekter ud fra streamen, og gemme dem i eventHistory-køen.
+     * Hvis denne InputEventReplayer er lavet af en server skal events sendes videre till alle clients. Dette gør
+     * at den client som har sendt eventet får det tilbage igen, og det er derfor vigtigt at ignorere events med samme
+     * id som ens eget.
      */
     private void startEventQueThread() {
         if(EventQueThread.isAlive()) {
@@ -78,12 +84,9 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                     while (!interrupted) {
                         MyTextEvent mte;
                         while (ois != null && (mte = (MyTextEvent) ois.readObject()) != null) {
-                            System.out.println("my id: " + sender + " mte id: " + mte.getSender() + " says EventQueueThread and: " + (mte.getSender() != sender));
                             if (!mte.getSender().equals(sender)) {
-                                System.out.println("mte being added to event queue: " + mte);
                                 eventHistory.add(mte);
                                 if (isFromServer && !(mte instanceof Unlogable)) {
-                                    System.out.println("I AM FROM SERVER AND OUTPUTLIST SIZE: " + outputList.size());
                                     for (OutputEventReplayer oer : outputList) {
                                         System.out.println("Adding to forcequeue");
                                         oer.forcedQueueAdd(mte);
@@ -102,6 +105,10 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         EventQueThread.start();
     }
 
+    /*
+     * En tråd der tilføjer MyTextEvents til loggen når man ikke er i gang med rollback. Bliver primært brugt
+     * når man skal tilføje sit eget output til loggen.
+     */
     public void startAddToLogThread(){
         Thread addToLogThread = new Thread(new Runnable() {
             @Override
@@ -140,17 +147,16 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                     System.out.println("my id: " + sender + " mte id: " + mte.getSender());
                     if (mte.getTimeStamp() >= dec.getTimeStamp()) {
                         dec.setTimeStamp(mte.getTimeStamp() + 1);
-                        System.out.println("impossible time");
                         if (!eventList.contains(mte) && !(mte instanceof Unlogable)) {
                             eventList.add(mte);
                         }
                         doMTE(mte);
                     } else {
-                        System.out.println("everything is fine");
                         rollback(mte.getTimeStamp(), mte);
                     }
                 }
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 e.printStackTrace();
                 interrupted = true;
             }
@@ -194,7 +200,6 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             Collections.reverse(rollbackList);
             for (MyTextEvent undo : eventList) {
                 if (undo.getTimeStamp() >= rollbackTo) {
-                    //waitForOneSecond();
                     undoEvent(undo);
                     tempList.add(undo);
                 }
@@ -210,7 +215,6 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
             // Loope der printer og udfører indholdet af tempList
             System.out.println("tempList: ");
             for (MyTextEvent m : tempList){
-                //waitForOneSecond();
                 doMTE(m);
                 if (m instanceof TextInsertEvent) {
                     System.out.print(((TextInsertEvent) m).getText() + ", ");
@@ -266,7 +270,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
      * En metode der udfører et TextEvent.
      * Hvis det er et InsertEvent, bliver det skrevet på tekstfeltet. Hvis der er gået noget galt og offset
      * er større en tekstfeltets teksts længde, bliver det ikke indsat.
-     * Hvis det er et RemoveEvent bliver safelyRemoveRange kaldt.
+     * Hvis det er et RemoveEvent bliver safelyRemoveRange kaldt.     *
      */
     private void doMTE(MyTextEvent mte) {
         if (mte instanceof TextInsertEvent) {
@@ -291,9 +295,7 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
          * Hvis TextEventet er et UpToDateEvent, er clienten forbundet til en samtale som allerede er i gang.
          * Den opdaterer sin egen log til at være eventets log. Dette kan antages at være den nyeste log, og hvis den
          * ikke er komplet kommer resten snart. Hele indholdet af eventets log bliver tilføjet til denne clients egen log.
-         * Der bliver derefter kaldt rollback til 0 for at blive konsistent. tempEvent er et dummy event der bliver
-         * brugt da rollback metoden skal tage en event. Både tempEvent og UpToDateEventet bliver fjernet fra
-         * loggen når den er færdig.
+         * Når man får et UpToDateEvent sletter man alt i sit tekstfelt og udfører alle events i den nye log.
          */
         else  if(mte instanceof UpToDateEvent){
             eventList = ((UpToDateEvent) mte).getLog();
@@ -306,11 +308,16 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
                 System.out.println("log length: " + eventList.size());
             }
         }
+        /*
+         * Et LocalhostEvent sætter localhostAddressvariablen som bliver brugt til elections.
+         */
         else if (mte instanceof LocalhostEvent){
             localhostAddress = ((LocalhostEvent) mte).getLocalhostAddress();
         }
+        /*
+         * Et ConnectToEvent sætter tråden til at vente i 2 seunder hvorefter man forbinder sig til den nye ip.
+         */
         else if (mte instanceof ConnectToEvent){
-            System.out.println("TRYING TO CONNECT IN 2!!!");
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
@@ -327,17 +334,18 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
     /*
      * En metode der udfører RemoveEvents.
      * Hvis eventets offset eller længde ikke passer i dokumentet bliver der ikek slettet noget.
+     * Hvis eventets offset er indenfor teksten med er for langt, bliver teksten fra det offset og frem til slutningen
+     * af teksten slettet.
      */
     private void safelyRemoveRange(TextRemoveEvent tre) {
         try {
             turnOff();
-            if (tre.getOffset() >= 0 && (tre.getOffset()+tre.getLength()) <= area.getText().length()) {
+            if (tre.getOffset() >= 0 && (tre.getOffset() + tre.getLength()) <= area.getText().length()) {
                 tre.setRemovedText(area.getText(tre.getOffset(), tre.getLength()));
                 area.replaceRange(null, tre.getOffset(), tre.getOffset() + tre.getLength());
             }
             turnOn();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             /* We catch all exceptions, as an uncaught exception would make the
              * EDT unwind, which is not healthy.
@@ -352,15 +360,6 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         setEventHistoryActive(true);
         oer.setEventListActive(true);
         dec.setActive(true);
-    }
-
-    public void waitForOneSecond(){
-        try{
-            Thread.sleep(1000);
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
     }
 
     public ArrayList<MyTextEvent> getEventList (){
@@ -399,6 +398,10 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
         return sender;
     }
 
+    /*
+     * Klargører events til at blive indsat i loggen når den er klar. Loggen accepterer ikke duplikater og events
+     * som implementerer Unlogable de disse ikke skal med i loggen.
+     */
     public void addToLog(MyTextEvent mte) {
         if (!(mte instanceof Unlogable) && !eventList.contains(mte)) {
             waitingToGoToLogQueue.add(mte);
@@ -415,5 +418,15 @@ public class InputEventReplayer implements Runnable, ReplayerInterface {
 
     public void stopThreads() {
         interrupted = true;
+    }
+
+    public void close() {
+        try {
+            ois.close();
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }

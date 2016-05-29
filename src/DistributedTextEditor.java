@@ -37,7 +37,6 @@ public class DistributedTextEditor extends JFrame {
 
     private DistributedTextEditor me = this;
 
-    //private ArrayList<MyTextEvent> startingList = new ArrayList<MyTextEvent>();
 
     public DistributedTextEditor() {
         //Genererer et ID som er en tilfældig long for at undgå ens ID
@@ -124,7 +123,7 @@ public class DistributedTextEditor extends JFrame {
         disconnect();
         //Tænder for dec da man nu skal bruge den
         dec.setStarted(true);
-        server = new ChatServer(dec, area1, id, me/*, startingList*/);
+        server = new ChatServer(dec, area1, id, me);
         serverThread = new Thread(server);
         serverThread.start();
         try {
@@ -138,7 +137,6 @@ public class DistributedTextEditor extends JFrame {
         setTitle("I'm listening on " + localhostAddress);
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
         clipboard.setContents(new StringSelection(localhostAddress), new StringSelection(localhostAddress));
-        //area1.setText("IP address copied to clip-board");
 
 
         changed = true;
@@ -157,10 +155,8 @@ public class DistributedTextEditor extends JFrame {
 
     public void connect() {
         disconnect();
-        //saveOld();
         setTitle("Connecting to " + ipaddress.getText() + ":" + portNumber.getText() + "...");
         //Tænder for dec da man nu skal bruge den
-        //area1.setText("");
         dec.setStarted(true);
         client = new ChatClient(ipaddress.getText(), portNumber.getText(), dec, area1, id, me);
         clientThread = new Thread(client);
@@ -192,15 +188,11 @@ public class DistributedTextEditor extends JFrame {
             server.disconnect();
             server = null;
             serverThread.interrupt();
-            area1.setText("");
-            area2.setText("");
         }
         else if(client != null){
             client.disconnect();
             client = null;
             clientThread.interrupt();
-            area1.setText("");
-            area2.setText("");
         }
     }
 
@@ -267,10 +259,6 @@ public class DistributedTextEditor extends JFrame {
     public static void main(String[] arg) {
         new DistributedTextEditor();
     }
-
-    /*public void setStartingList(ArrayList<MyTextEvent> startingList) {
-        this.startingList = startingList;
-    }*/
 
     public void setIpaddressString(String newAddress){
         ipaddress.setText(newAddress);

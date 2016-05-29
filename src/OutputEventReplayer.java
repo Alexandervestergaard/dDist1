@@ -26,9 +26,9 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
     private ChatClient owner;
 
     /*
-    Konstruktøren sørger for at oprette en OjectOutputStream på socket'en.
-    Denne bruges til at sende MyTextEvent-objekter, hentet fra den originale DocumentEventCapturer, ud
-    på streamen.
+     * Konstruktøren sørger for at oprette en OjectOutputStream på socket'en.
+     * Denne bruges til at sende MyTextEvent-objekter, hentet fra den originale DocumentEventCapturer, ud
+     * på streamen.
      */
     public OutputEventReplayer(DocumentEventCapturer dec, Socket socket, InputEventReplayer iep, ChatClient owner) {
         this.dec = dec;
@@ -55,6 +55,7 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
     public void run() {
         if (!isFromServer){
             try {
+                // Som det første sender clients et LocalhostEvent til serveren for at muliggøre elections
                 oos.writeObject(new LocalhostEvent(-1, dec.getTimeStamp(), iep.getSender(), owner.getLocalhostAddress()));
             } catch (IOException e) {
                 e.printStackTrace();
@@ -65,7 +66,7 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
             try {
                 MyTextEvent mte;
                 /*
-                 * Hvis denne OutputEventReplayer er lavt af en server skal den tage events fra forcedQueue. Ellers
+                 * Hvis denne OutputEventReplayer er lavet af en server skal den tage events fra forcedQueue. Ellers
                  * skal den tage fra dec som den plejer.
                  */
                 if (isFromServer) {
@@ -77,6 +78,7 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
 
                 if ((mte != null)) {
                     System.out.println("Adding " + mte + " to eventlist from outputreplayer");
+                    //Tilføjer output til loggen.
                     iep.addToLog(mte);
                     System.out.println("oos write to stream: " + mte.toString());
                     oos.writeObject(mte);
@@ -88,13 +90,6 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
             }
         }
         System.out.println("I'm the thread running the EventReplayer, now I die!");
-    }
-
-    public void waitForOneSecond() {
-        try {
-            Thread.sleep(1000);
-        } catch(InterruptedException e) {
-        }
     }
 
     public void setIep(InputEventReplayer iep) {
@@ -119,6 +114,7 @@ public class OutputEventReplayer implements ReplayerInterface, Runnable {
 
     public void close(){
         try {
+            oos.close();
             socket.close();
         } catch (IOException e) {
             e.printStackTrace();
